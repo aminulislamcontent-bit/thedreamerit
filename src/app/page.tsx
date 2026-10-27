@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
 import { StorefrontHeader } from '@/components/storefront/header';
 import { StorefrontFooter } from '@/components/storefront/footer';
-import { HomePage } from '@/components/storefront/home-page';
+import { HomePage } from '@/components/storefront/home-page-v2';
 import { CatalogPage } from '@/components/storefront/catalog-page';
 import { ProductDetailPage } from '@/components/storefront/product-detail-page';
 import { CartPage } from '@/components/storefront/cart-page';
@@ -20,6 +20,7 @@ import {
 } from '@/components/storefront/info-pages';
 import { AdminDashboard } from '@/components/admin/admin-dashboard';
 import { PosTerminal } from '@/components/pos/pos-terminal';
+import { WhatsAppWidget } from '@/components/storefront/whatsapp-widget';
 import { useAuth } from '@/hooks/use-auth';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -51,7 +52,7 @@ export default function Home() {
     );
   }
 
-  // Storefront layout
+  // Storefront layout with WhatsApp widget
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <StorefrontHeader />
@@ -59,6 +60,7 @@ export default function Home() {
         {renderView(view, user)}
       </main>
       <StorefrontFooter />
+      <WhatsAppWidget />
       <Toaster position="top-right" richColors />
     </div>
   );

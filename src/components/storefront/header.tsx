@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   ShoppingCart, Search, Menu, User, Phone, MapPin, Mail, ChevronDown,
-  LogOut, Package, Settings, BarChart3, X, Truck, Shield,
+  LogOut, Package, Settings, BarChart3, X, Truck, Shield, MessageCircle,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useApi } from '@/hooks/use-api';
@@ -56,15 +56,27 @@ export function StorefrontHeader() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div className="hidden md:block bg-primary text-primary-foreground">
+      <div className="hidden md:block bg-gradient-to-r from-emerald-700 to-teal-700 text-white">
         <div className="container mx-auto flex h-9 items-center justify-between px-4 text-xs">
           <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5"><Phone className="h-3 w-3" /> {BUSINESS.phone}</span>
-            <span className="flex items-center gap-1.5"><Mail className="h-3 w-3" /> {BUSINESS.email}</span>
-            <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> Shop 104 & 105, Subastu Arcade, ICT Bhaban</span>
+            <a href={`tel:${BUSINESS.phone}`} className="flex items-center gap-1.5 hover:underline">
+              <Phone className="h-3 w-3" /> {BUSINESS.phone}
+            </a>
+            <a href={`mailto:${BUSINESS.email}`} className="flex items-center gap-1.5 hover:underline">
+              <Mail className="h-3 w-3" /> {BUSINESS.email}
+            </a>
+            <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> Shop 104 & 105, ICT Bhaban, Dhaka</span>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => setLanguage(language === 'bn' ? 'en' : 'bn')} className="rounded px-1.5 py-0.5 hover:bg-primary-foreground/10 transition">
+            <a
+              href={`https://wa.me/${BUSINESS.whatsapp}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 px-2 py-0.5 rounded transition"
+            >
+              <MessageCircle className="h-3 w-3" /> WhatsApp সাপোর্ট
+            </a>
+            <button onClick={() => setLanguage(language === 'bn' ? 'en' : 'bn')} className="rounded px-1.5 py-0.5 hover:bg-white/10 transition">
               {language === 'bn' ? 'EN' : 'বাংলা'}
             </button>
             {user && <span className="flex items-center gap-1"><User className="h-3 w-3" /> {user.name}</span>}
@@ -202,11 +214,14 @@ export function StorefrontHeader() {
 
         <nav className="hidden md:flex items-center gap-1 h-11 border-t border-border/40">
           {NAV_LINKS.map((link) => (
-            <button key={link.label} onClick={() => navigate(link.view)} className="px-3 py-1.5 text-sm font-medium text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-md transition">{link.label}</button>
+            <button key={link.label} onClick={() => navigate(link.view)} className="px-3 py-1.5 text-sm font-medium text-foreground/80 hover:text-emerald-600 hover:bg-emerald-500/5 rounded-md transition">{link.label}</button>
           ))}
-          <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1"><Truck className="h-3 w-3" /> সারা দেশে ডেলিভারি</span>
-            <span className="flex items-center gap-1"><Shield className="h-3 w-3" /> ১০০% অরিজিনাল প্রোডাক্ট</span>
+          <div className="ml-auto flex items-center gap-3 text-xs">
+            <a href={`https://wa.me/${BUSINESS.whatsapp}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-emerald-600 font-medium hover:underline">
+              <MessageCircle className="h-3 w-3" /> WhatsApp
+            </a>
+            <span className="text-muted-foreground flex items-center gap-1"><Truck className="h-3 w-3" /> সারা দেশে ডেলিভারি</span>
+            <span className="text-muted-foreground flex items-center gap-1"><Shield className="h-3 w-3" /> ১০০% অরিজিনাল</span>
           </div>
         </nav>
       </div>
