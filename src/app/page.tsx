@@ -12,7 +12,7 @@ import { CheckoutPage } from '@/components/storefront/checkout-page';
 import { OrderSuccessPage } from '@/components/storefront/order-success-page';
 import { TrackOrderPage } from '@/components/storefront/track-order-page';
 import { CustomerAuthPage } from '@/components/storefront/customer-auth-page';
-import { PcConfiguratorPage } from '@/components/storefront/pc-configurator-page';
+import { PcConfiguratorPage } from '@/components/storefront/pc-configurator-page-v3';
 import { ComparePage } from '@/components/storefront/compare-page';
 import {
   AboutPage, ContactPage, FaqPage, PrivacyPage, TermsPage,
