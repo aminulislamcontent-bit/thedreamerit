@@ -1,0 +1,1190 @@
+// The Dreamer IT Express - Enterprise Platform Schema
+// Generated for: Subastu Arcade, ICT Bhaban, Level 1, Shop Nos. 104 and 105, Bangladesh
+// Default currency: BDT | Default language: Bangla (with English) | Timezone: Asia/Dhaka
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// AUTHENTICATION, USERS, ROLES & PERMISSIONS
+// ============================================================================
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  phone             String?
+  name              String
+  passwordHash      String
+  status            String    @default("ACTIVE") // ACTIVE, SUSPENDED, INACTIVE
+  twoFactorEnabled  Boolean   @default(false)
+  twoFactorSecret   String?
+  lastLoginAt       DateTime?
+  lastLoginIp       String?
+  failedLoginCount  Int       @default(0)
+  passwordChangedAt DateTime  @default(now())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  roles             UserRole[]
+  employee          Employee?
+  customer          Customer?
+  auditEvents       AuditEvent[]
+  sessions          Session[]
+  contentDrafts     ContentDraft[]
+  approvalsRequested PriceApproval[] @relation("PriceApprovalRequester")
+  approvalsApproved  PriceApproval[] @relation("PriceApprovalApprover")
+  stockMovementAdjustments StockMovement[] @relation("StockAdjuster")
+  orders            Order[]          @relation("OrderCreatedBy")
+  posOrders         Order[]          @relation("OrderSalesperson")
+  supportTickets    SupportTicket[]  @relation("TicketAssignee")
+  ticketReplies     SupportTicketReply[]
+  notifications     Notification[]
+  reviewReplies     Review[]               @relation("ReviewReplier")
+  publishingJobs    PublishingJob[]
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique // SUPER_ADMIN, ADMINISTRATOR, BRANCH_MANAGER, etc.
+  description String?
+  isSystem    Boolean  @default(false) // system roles cannot be deleted
+  createdAt   DateTime @default(now())
+
+  users       UserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  code        String   @unique // e.g. "products.create", "pos.sell", "inventory.adjust"
+  description String?
+  module      String   // products, inventory, orders, pos, hr, finance, etc.
+
+  roles       RolePermission[]
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+model UserRole {
+  id      String @id @default(cuid())
+  userId  String
+  roleId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role    Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  token        String   @unique
+  ipAddress    String?
+  userAgent    String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  revokedAt    DateTime?
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AuditEvent {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String   // e.g. "user.login", "product.create", "order.refund"
+  entityType String
+  entityId   String?
+  branchId   String?
+  metadata   String?  // JSON string
+  ipAddress  String?
+  userAgent  String?
+  severity   String   @default("INFO") // INFO, WARN, ERROR, CRITICAL
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// ORGANIZATION: BRANCHES, WAREHOUSES, SUPPLIERS, BRANDS, CATEGORIES
+// ============================================================================
+
+model Branch {
+  id          String   @id @default(cuid())
+  code        String   @unique // e.g. "SHOP-104", "SHOP-105"
+  name        String
+  address     String
+  phone       String?
+  email       String?
+  isHeadOffice Boolean @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  warehouses     Warehouse[]
+  inventory      Inventory[]
+  stockMovements StockMovement[]
+  orders         Order[]
+  employees      Employee[]
+  cashRegisters  CashRegister[]
+  transfersOut   StockTransfer[] @relation("TransferFrom")
+  transfersIn    StockTransfer[] @relation("TransferTo")
+}
+
+model Warehouse {
+  id        String   @id @default(cuid())
+  branchId  String
+  code      String   @unique
+  name      String
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branch        Branch       @relation(fields: [branchId], references: [id])
+  inventory     Inventory[]
+  stockMovements StockMovement[]
+}
+
+model Brand {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  logoUrl     String?
+  country     String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  parentId    String?
+  description String?
+  iconUrl     String?
+  displayOrder Int      @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  parent       Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children     Category[] @relation("CategoryTree")
+  products     Product[]
+  attributes   CategoryAttribute[]
+}
+
+// Category-specific attributes (e.g. laptop: RAM, CPU; monitor: refresh rate, panel type)
+model CategoryAttribute {
+  id           String  @id @default(cuid())
+  categoryId   String
+  name         String  // e.g. "RAM Capacity"
+  code         String  // e.g. "ram_capacity"
+  type         String  // STRING, NUMBER, BOOLEAN, SELECT
+  unit         String? // GB, MHz, etc.
+  isRequired   Boolean @default(false)
+  isFilterable Boolean @default(true)
+  options      String? // JSON array for SELECT type
+  displayOrder Int     @default(0)
+
+  category Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  values   ProductAttributeValue[]
+}
+
+model Supplier {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  name         String
+  legalName    String?
+  taxId        String?
+  contactName  String?
+  email        String?
+  phone        String?
+  address      String?
+  paymentTerms String?
+  rating       Int      @default(3) // 1-5
+  isActive     Boolean  @default(true)
+  balanceDue   Float    @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  purchaseOrders PurchaseOrder[]
+  products       ProductSupplier[]
+  documents      SupplierDocument[]
+  ledgerEntries  SupplierLedgerEntry[]
+}
+
+// ============================================================================
+// PRODUCTS, VARIANTS, MEDIA, SPECIFICATIONS
+// ============================================================================
+
+model Product {
+  id                    String   @id @default(cuid())
+  sku                   String   @unique
+  barcode               String?
+  name                  String
+  slug                  String   @unique
+  brandId               String?
+  categoryId            String
+  model                 String?
+  manufacturerPartNumber String?
+  shortDescription      String?
+  fullDescription       String?  // markdown
+  warrantyMonths        Int      @default(0)
+  status                String   @default("DRAFT") // DRAFT, PENDING_REVIEW, APPROVED, PUBLISHED, ARCHIVED
+  isFeatured            Boolean  @default(false)
+  isBundle              Boolean  @default(false)
+  supportsConfigurator  Boolean  @default(false)
+  has3dModel            Boolean  @default(false)
+  model3dUrl            String?  // GLB/glTF URL
+
+  // Pricing - stored as decimal-safe Float (BDT)
+  sellingPrice          Float    @default(0)
+  costPrice             Float    @default(0)
+  landedCost            Float    @default(0)
+  compareAtPrice        Float?   // original price for discount display
+  promotionalPrice      Float?
+  minSellingPrice       Float    @default(0) // price floor - enforced
+  taxRate               Float    @default(0) // percentage
+
+  // SEO
+  metaTitle             String?
+  metaDescription       String?
+  seoKeywords           String?
+
+  // Inventory config
+  trackSerialNumbers    Boolean  @default(false)
+  trackInventory        Boolean  @default(true)
+  reorderThreshold      Int      @default(5)
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  brand                 Brand?               @relation(fields: [brandId], references: [id])
+  category              Category             @relation(fields: [categoryId], references: [id])
+  images                ProductImage[]
+  videos                ProductVideo[]
+  attributeValues       ProductAttributeValue[]
+  inventory             Inventory[]
+  stockMovements        StockMovement[]
+  orderItems            OrderItem[]
+  cartItems             CartItem[]
+  suppliers             ProductSupplier[]
+  reviews               Review[]
+  contentDrafts         ContentDraft[]
+  bundles               BundleItem[]         @relation("BundleProduct")
+  bundleOf              BundleItem[]         @relation("BundleParent")
+  configuratorParts     ProductConfiguratorPart[]
+  priceApprovals        PriceApproval[]
+  wishlistedBy          Wishlist[]
+}
+
+model ProductImage {
+  id          String  @id @default(cuid())
+  productId   String
+  url         String
+  altText     String?
+  isPrimary   Boolean @default(false)
+  displayOrder Int    @default(0)
+  width       Int?
+  height      Int?
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductVideo {
+  id        String @id @default(cuid())
+  productId String
+  url       String
+  title     String?
+  isPrimary Boolean @default(false)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductAttributeValue {
+  id                String @id @default(cuid())
+  productId         String
+  categoryAttributeId String
+  valueString       String?
+  valueNumber       Float?
+  valueBoolean      Boolean?
+
+  product           Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  categoryAttribute CategoryAttribute @relation(fields: [categoryAttributeId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, categoryAttributeId])
+}
+
+// Product-Supplier relationship (many-to-many with cost)
+model ProductSupplier {
+  id         String  @id @default(cuid())
+  productId  String
+  supplierId String
+  supplierSku String?
+  costPrice  Float
+  leadTimeDays Int?
+  isPreferred Boolean @default(false)
+
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+
+  @@unique([productId, supplierId])
+}
+
+// Bundles (e.g. PC build = CPU + MB + RAM + GPU + case + PSU)
+model BundleItem {
+  id           String @id @default(cuid())
+  bundleProductId String  // the bundle product
+  componentProductId String // the component
+  quantity     Int    @default(1)
+  isRequired   Boolean @default(true)
+  isUserConfigurable Boolean @default(false)
+
+  bundleProduct    Product @relation("BundleParent", fields: [bundleProductId], references: [id], onDelete: Cascade)
+  componentProduct Product @relation("BundleProduct", fields: [componentProductId], references: [id])
+}
+
+// PC Configurator: which component slots can be configured for a product
+model ProductConfiguratorPart {
+  id                String @id @default(cuid())
+  productId         String  // the parent configurable product
+  slotName          String  // e.g. "CPU", "MOTHERBOARD", "RAM", "GPU", "STORAGE", "PSU", "CASE", "COOLING"
+  slotLabel         String
+  isRequired        Boolean @default(true)
+  allowedCategoryIds String // comma-separated Category IDs that fit this slot
+  defaultComponentId String?
+  displayOrder      Int    @default(0)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================================
+// INVENTORY & STOCK MOVEMENTS
+// ============================================================================
+
+model Inventory {
+  id              String   @id @default(cuid())
+  productId       String
+  branchId        String?
+  warehouseId     String?
+  quantityOnHand  Int      @default(0)
+  quantityReserved Int     @default(0) // for pending orders
+  quantityAvailable Int    @default(0) // computed: onHand - reserved
+  valuationUnit   Float    @default(0) // weighted average cost per unit
+  reorderThreshold Int     @default(5)
+  lastCountDate   DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  product         Product    @relation(fields: [productId], references: [id])
+  branch          Branch?    @relation(fields: [branchId], references: [id])
+  warehouse       Warehouse? @relation(fields: [warehouseId], references: [id])
+  serialNumbers   SerialNumber[]
+
+  @@unique([productId, branchId, warehouseId])
+  @@index([branchId])
+}
+
+model SerialNumber {
+  id           String   @id @default(cuid())
+  inventoryId  String
+  serialCode   String   @unique
+  productId    String
+  status       String   @default("IN_STOCK") // IN_STOCK, SOLD, RETURNED, DAMAGED, IN_TRANSIT
+  warrantyStart DateTime?
+  warrantyEnd  DateTime?
+  createdAt    DateTime @default(now())
+
+  inventory    Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+}
+
+model StockMovement {
+  id          String   @id @default(cuid())
+  productId   String
+  branchId    String?
+  warehouseId String?
+  quantity    Int      // positive = in, negative = out
+  movementType String  // PURCHASE_RECEIPT, SALE, RETURN, TRANSFER_OUT, TRANSFER_IN,
+                       // ADJUSTMENT_IN, ADJUSTMENT_OUT, DAMAGE, CYCLE_COUNT, RESERVATION, RESERVATION_RELEASE
+  referenceType String? // ORDER, PURCHASE_ORDER, TRANSFER, MANUAL_ADJUST
+  referenceId  String?
+  unitCost     Float    @default(0)
+  reason       String?
+  serialCodes  String?  // comma-separated serial codes if applicable
+  performedBy  String?
+  createdAt    DateTime @default(now())
+
+  product     Product    @relation(fields: [productId], references: [id])
+  branch      Branch?    @relation(fields: [branchId], references: [id])
+  warehouse   Warehouse? @relation(fields: [warehouseId], references: [id])
+  adjuster    User?      @relation("StockAdjuster", fields: [performedBy], references: [id])
+
+  @@index([productId])
+  @@index([branchId, createdAt])
+}
+
+model StockTransfer {
+  id           String   @id @default(cuid())
+  transferCode String   @unique
+  fromBranchId String
+  toBranchId   String
+  status       String   @default("REQUESTED") // REQUESTED, DISPATCHED, IN_TRANSIT, RECEIVED, CANCELLED
+  notes        String?
+  requestedBy  String
+  dispatchedBy String?
+  receivedBy   String?
+  dispatchedAt DateTime?
+  receivedAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  fromBranch   Branch @relation("TransferFrom", fields: [fromBranchId], references: [id])
+  toBranch     Branch @relation("TransferTo", fields: [toBranchId], references: [id])
+  items        StockTransferItem[]
+}
+
+model StockTransferItem {
+  id           String @id @default(cuid())
+  transferId   String
+  productId    String
+  quantityRequested Int
+  quantityDispatched Int @default(0)
+  quantityReceived Int   @default(0)
+  serialCodes  String?
+
+  transfer StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================================
+// CUSTOMERS, CART, ORDERS, PAYMENTS, REFUNDS
+// ============================================================================
+
+model Customer {
+  id            String    @id @default(cuid())
+  userId        String?   @unique  // link to User if registered
+  name          String
+  email         String?
+  phone         String?
+  address       String?
+  city          String?
+  district      String?
+  postalCode    String?
+  marketingConsent Boolean @default(false)
+  isVerified    Boolean   @default(false)
+  totalOrders   Int       @default(0)
+  totalSpent    Float     @default(0)
+  loyaltyPoints Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User?       @relation(fields: [userId], references: [id])
+  cart          Cart?
+  orders        Order[]
+  reviews       Review[]
+  supportTickets SupportTicket[]
+  wishlist      Wishlist[]
+  communications Communication[]
+}
+
+model Cart {
+  id         String   @id @default(cuid())
+  customerId String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  customer Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items    CartItem[]
+}
+
+model CartItem {
+  id        String @id @default(cuid())
+  cartId    String
+  productId String
+  quantity  Int
+  unitPrice Float
+  configuration String? // JSON: configured PC parts if applicable
+  serialCodes String?
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Order {
+  id              String   @id @default(cuid())
+  orderNumber     String   @unique // e.g. DIT-2026-00001
+  customerId      String?
+  branchId        String?
+  type            String   @default("ONLINE") // ONLINE, POS
+  status          String   @default("PENDING")
+  // PENDING -> CONFIRMED -> PROCESSING -> PACKED -> DISPATCHED -> DELIVERED
+  // alt: PAYMENT_FAILED, CANCELLED, RETURNED, REFUNDED
+  paymentStatus   String   @default("UNPAID") // UNPAID, PARTIAL, PAID, REFUNDED, PARTIALLY_REFUNDED
+  fulfillmentStatus String @default("UNFULFILLED")
+  subtotal        Float    @default(0)
+  discountAmount  Float    @default(0)
+  taxAmount       Float    @default(0)
+  shippingAmount  Float    @default(0)
+  totalAmount     Float    @default(0)
+  paidAmount      Float    @default(0)
+  refundedAmount  Float    @default(0)
+  currency        String   @default("BDT")
+
+  // Customer info (snapshot at order time)
+  customerName    String
+  customerPhone   String
+  customerEmail   String?
+  shippingAddress String?
+  shippingCity    String?
+  billingAddress  String?
+
+  notes           String?
+  internalNotes   String?
+  createdById     String?
+  salespersonId   String?
+  posRegisterId   String?
+
+  confirmedAt     DateTime?
+  packedAt        DateTime?
+  dispatchedAt    DateTime?
+  deliveredAt     DateTime?
+  cancelledAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  customer        Customer?  @relation(fields: [customerId], references: [id])
+  branch          Branch?    @relation(fields: [branchId], references: [id])
+  createdBy       User?      @relation("OrderCreatedBy", fields: [createdById], references: [id])
+  salesperson     User?      @relation("OrderSalesperson", fields: [salespersonId], references: [id])
+  cashRegister    CashRegister? @relation(fields: [posRegisterId], references: [id])
+  items           OrderItem[]
+  payments        Payment[]
+  refunds         Refund[]
+  invoices        Invoice[]
+  returns         OrderReturn[]
+  warrantyClaims  WarrantyClaim[]
+  statusHistory   OrderStatusHistory[]
+}
+
+model OrderItem {
+  id           String  @id @default(cuid())
+  orderId      String
+  productId    String
+  productName  String  // snapshot
+  sku          String  // snapshot
+  quantity     Int
+  unitPrice    Float
+  discountAmount Float @default(0)
+  taxAmount    Float   @default(0)
+  totalAmount  Float
+  costPrice    Float   @default(0) // for margin calc
+  serialCodes  String?
+  configuration String? // PC config snapshot
+  warrantyMonths Int   @default(0)
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model OrderStatusHistory {
+  id        String   @id @default(cuid())
+  orderId   String
+  status    String
+  notes     String?
+  changedById String?
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id           String   @id @default(cuid())
+  orderId      String
+  amount       Float
+  method       String   // CASH, CARD, BKASH, NAGAD, ROCKET, BANK_TRANSFER, WALLET
+  reference    String?  // transaction ID from gateway
+  status       String   @default("PENDING") // PENDING, COMPLETED, FAILED, REFUNDED
+  paymentGateway String?
+  paidAt       DateTime?
+  failureReason String?
+  createdAt    DateTime @default(now())
+
+  order    Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Refund {
+  id          String   @id @default(cuid())
+  orderId     String
+  amount      Float
+  reason      String
+  status      String   @default("PENDING") // PENDING, APPROVED, COMPLETED, REJECTED
+  approvedBy  String?
+  processedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Invoice {
+  id            String   @id @default(cuid())
+  invoiceNumber String   @unique
+  orderId       String
+  type          String   @default("SALES") // SALES, PROFORMA, CREDIT_NOTE
+  amount        Float
+  taxAmount     Float    @default(0)
+  totalAmount   Float
+  pdfUrl        String?
+  createdAt     DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model OrderReturn {
+  id         String   @id @default(cuid())
+  orderId    String
+  reason     String
+  status     String   @default("REQUESTED") // REQUESTED, APPROVED, RECEIVED, REFUNDED, REJECTED
+  itemsJson  String   // JSON snapshot of returned items
+  requestedAt DateTime @default(now())
+  processedAt DateTime?
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model WarrantyClaim {
+  id         String   @id @default(cuid())
+  orderId    String
+  customerId String?
+  productId  String?
+  issue      String
+  status     String   @default("OPEN") // OPEN, IN_REVIEW, APPROVED, REJECTED, RESOLVED
+  resolution String?
+  createdAt  DateTime @default(now())
+  resolvedAt DateTime?
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+model CashRegister {
+  id           String   @id @default(cuid())
+  branchId     String
+  code         String
+  name         String
+  openingFloat Float    @default(0)
+  currentBalance Float  @default(0)
+  status       String   @default("CLOSED") // OPEN, CLOSED
+  openedAt     DateTime?
+  closedAt     DateTime?
+  openedBy     String?
+  createdAt    DateTime @default(now())
+
+  branch  Branch  @relation(fields: [branchId], references: [id])
+  orders  Order[]
+}
+
+model Wishlist {
+  id         String   @id @default(cuid())
+  customerId String
+  productId  String
+  createdAt  DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id])
+}
+
+// ============================================================================
+// PROCUREMENT: PURCHASE ORDERS, GOODS RECEIPTS
+// ============================================================================
+
+model PurchaseOrder {
+  id           String   @id @default(cuid())
+  poNumber     String   @unique
+  supplierId   String
+  branchId     String?
+  status       String   @default("DRAFT") // DRAFT, PENDING_APPROVAL, APPROVED, SENT, PARTIALLY_RECEIVED, RECEIVED, CANCELLED
+  totalAmount  Float    @default(0)
+  paidAmount   Float    @default(0)
+  expectedDate DateTime?
+  approvedBy   String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  supplier  Supplier         @relation(fields: [supplierId], references: [id])
+  items     PurchaseOrderItem[]
+  receipts  GoodsReceipt[]
+  invoices  SupplierInvoice[]
+  ledgerEntries SupplierLedgerEntry[]
+}
+
+model PurchaseOrderItem {
+  id           String @id @default(cuid())
+  purchaseOrderId String
+  productId     String
+  quantity      Int
+  receivedQuantity Int @default(0)
+  unitCost      Float
+  totalCost     Float
+  serialCodes   String?
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+}
+
+model GoodsReceipt {
+  id           String   @id @default(cuid())
+  grnNumber    String   @unique
+  purchaseOrderId String
+  receivedBy   String
+  receivedAt   DateTime @default(now())
+  notes        String?
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  items         GoodsReceiptItem[]
+}
+
+model GoodsReceiptItem {
+  id              String @id @default(cuid())
+  goodsReceiptId  String
+  productId       String
+  quantityReceived Int
+  unitCost        Float
+  serialCodes     String?
+
+  goodsReceipt GoodsReceipt @relation(fields: [goodsReceiptId], references: [id], onDelete: Cascade)
+}
+
+model SupplierInvoice {
+  id            String   @id @default(cuid())
+  invoiceNumber String
+  purchaseOrderId String
+  supplierId    String
+  amount        Float
+  taxAmount     Float    @default(0)
+  totalAmount   Float
+  dueDate       DateTime?
+  status        String   @default("UNPAID") // UNPAID, PARTIAL, PAID, OVERDUE
+  pdfUrl        String?
+  createdAt     DateTime @default(now())
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+}
+
+model SupplierDocument {
+  id         String   @id @default(cuid())
+  supplierId String
+  fileName   String
+  fileUrl    String
+  fileType   String
+  uploadedAt DateTime @default(now())
+
+  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+}
+
+model SupplierLedgerEntry {
+  id          String   @id @default(cuid())
+  supplierId  String
+  purchaseOrderId String?
+  type        String   // INVOICE, PAYMENT, CREDIT_NOTE, DEBIT_NOTE
+  amount      Float    // positive = debit (we owe), negative = credit (we paid)
+  reference   String?
+  createdAt   DateTime @default(now())
+
+  supplier       Supplier       @relation(fields: [supplierId], references: [id])
+  purchaseOrder  PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+}
+
+// ============================================================================
+// HR: EMPLOYEES, ATTENDANCE, LEAVE, PERFORMANCE
+// ============================================================================
+
+model Employee {
+  id            String   @id @default(cuid())
+  userId        String?  @unique
+  employeeCode  String   @unique
+  fullName      String
+  designation   String
+  department    String
+  branchId      String?
+  employmentStatus String @default("ACTIVE") // ACTIVE, ON_LEAVE, TERMINATED, RESIGNED
+  joinDate      DateTime @default(now())
+  exitDate      DateTime?
+  basicSalary   Float    @default(0)
+  phone         String?
+  email         String?
+  address       String?
+  emergencyContact String?
+  managerId     String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User?      @relation(fields: [userId], references: [id])
+  branch        Branch?    @relation(fields: [branchId], references: [id])
+  attendance    Attendance[]
+  leaveRequests LeaveRequest[]
+  commissions   CommissionTransaction[]
+  performanceTargets PerformanceTarget[]
+}
+
+model Attendance {
+  id         String   @id @default(cuid())
+  employeeId String
+  date       DateTime
+  checkIn    DateTime?
+  checkOut   DateTime?
+  status     String   @default("PRESENT") // PRESENT, ABSENT, LATE, HALF_DAY, LEAVE
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+}
+
+model LeaveRequest {
+  id         String   @id @default(cuid())
+  employeeId String
+  leaveType  String   // CASUAL, SICK, ANNUAL, UNPAID
+  startDate  DateTime
+  endDate    DateTime
+  reason     String
+  status     String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  approvedBy String?
+  createdAt  DateTime @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model PerformanceTarget {
+  id            String   @id @default(cuid())
+  employeeId    String
+  period        String   // "2026-01" monthly
+  salesTarget   Float    @default(0)
+  achievedAmount Float   @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================================
+// COMMISSION ENGINE
+// ============================================================================
+
+model CommissionRule {
+  id              String   @id @default(cuid())
+  name            String
+  type            String   // PERCENTAGE, FIXED, MARGIN_BASED
+  value           Float    // percentage or fixed amount
+  appliesTo       String   @default("ALL") // ALL, CATEGORY, PRODUCT, EMPLOYEE
+  categoryId      String?
+  productId       String?
+  employeeId      String?
+  minMargin       Float    @default(0) // for margin-based
+  campaignId      String?
+  isActive        Boolean  @default(true)
+  startDate       DateTime?
+  endDate         DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model CommissionTransaction {
+  id              String   @id @default(cuid())
+  employeeId      String
+  orderId         String?
+  orderItemId     String?
+  ruleId          String?
+  amount          Float
+  status          String   @default("PENDING") // PENDING, APPROVED, PAID, ADJUSTED, CANCELLED
+  period          String   // "2026-01"
+  notes           String?
+  createdAt       DateTime @default(now())
+  approvedAt      DateTime?
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================================
+// ACCOUNTING: EXPENSES, TAXES, LEDGER
+// ============================================================================
+
+model Expense {
+  id          String   @id @default(cuid())
+  branchId    String?
+  category    String   // RENT, UTILITIES, SALARY, MARKETING, MAINTENANCE, OTHER
+  description String
+  amount      Float
+  date        DateTime
+  paidTo      String?
+  paymentMethod String?
+  receiptUrl  String?
+  approvedBy  String?
+  status      String   @default("PENDING") // PENDING, APPROVED, PAID
+  createdAt   DateTime @default(now())
+}
+
+model LedgerEntry {
+  id          String   @id @default(cuid())
+  date        DateTime
+  accountCode String   // e.g. "1000-Cash", "4000-Sales", "5000-COGS"
+  accountName String
+  debit       Float    @default(0)
+  credit      Float    @default(0)
+  referenceType String?
+  referenceId String?
+  description String?
+  branchId    String?
+  createdAt   DateTime @default(now())
+}
+
+// ============================================================================
+// CONTENT, AI CONTENT STUDIO, PUBLISHING
+// ============================================================================
+
+model ContentDraft {
+  id          String   @id @default(cuid())
+  productId   String?
+  type        String   // PRODUCT_DESC_BN, PRODUCT_DESC_EN, SEO_TITLE, META_DESC, ALT_TEXT,
+                       // BUYING_GUIDE, COMPARISON_ARTICLE, TECH_EXPLAINER, SOCIAL_CAPTION,
+                       // VIDEO_SCRIPT, CAMPAIGN_DRAFT, FAQ
+  title       String
+  content     String
+  language    String   @default("bn")
+  status      String   @default("DRAFT") // DRAFT, IN_REVIEW, APPROVED, PUBLISHED, REJECTED
+  source      String   @default("AI") // AI, HUMAN, IMPORTED
+  aiModelUsed String?
+  createdBy   String?
+  reviewedBy  String?
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  product     Product? @relation(fields: [productId], references: [id])
+  creator     User?    @relation(fields: [createdBy], references: [id])
+}
+
+model PublishingJob {
+  id          String   @id @default(cuid())
+  platform    String   // FACEBOOK, INSTAGROUP, YOUTUBE, WHATSAPP, WEBSITE
+  title       String
+  content     String
+  mediaUrls   String?  // JSON array
+  scheduledAt DateTime?
+  publishedAt DateTime?
+  status      String   @default("DRAFT") // DRAFT, PENDING_APPROVAL, APPROVED, SCHEDULED, PUBLISHING, PUBLISHED, FAILED, CANCELLED
+  externalPostId String?
+  campaignId  String?
+  errorMessage String?
+  createdById String?
+  approvedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creator User? @relation(fields: [createdById], references: [id])
+}
+
+model MarketingCampaign {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  type        String   // DISCOUNT, BOGO, FLASH_SALE, BUNDLE, COUPON
+  startDate   DateTime
+  endDate     DateTime
+  status      String   @default("DRAFT") // DRAFT, ACTIVE, PAUSED, COMPLETED, CANCELLED
+  budget      Float    @default(0)
+  spent       Float    @default(0)
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  conversions Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  coupons     Coupon[]
+}
+
+model Coupon {
+  id          String   @id @default(cuid())
+  campaignId  String?
+  code        String   @unique
+  type        String   // PERCENTAGE, FIXED_AMOUNT, FREE_SHIPPING
+  value       Float
+  minOrderAmount Float @default(0)
+  maxUsageCount Int?
+  usedCount   Int      @default(0)
+  validFrom   DateTime
+  validUntil  DateTime
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  campaign MarketingCampaign? @relation(fields: [campaignId], references: [id])
+}
+
+// ============================================================================
+// CUSTOMER SUPPORT, NOTIFICATIONS, COMMUNICATIONS
+// ============================================================================
+
+model SupportTicket {
+  id          String   @id @default(cuid())
+  ticketNumber String  @unique
+  customerId  String?
+  channel     String   @default("WEB") // WEB, WHATSAPP, EMAIL, PHONE, POS
+  subject     String
+  description String
+  category    String   // ORDER_ISSUE, WARRANTY, RETURN, PRODUCT_INFO, PAYMENT, OTHER
+  priority    String   @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
+  status      String   @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED, REOPENED
+  assignedTo  String?
+  relatedOrderId String?
+  relatedProductId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  resolvedAt  DateTime?
+
+  customer   Customer?  @relation(fields: [customerId], references: [id])
+  assignee   User?      @relation("TicketAssignee", fields: [assignedTo], references: [id])
+  replies    SupportTicketReply[]
+}
+
+model SupportTicketReply {
+  id         String   @id @default(cuid())
+  ticketId   String
+  userId     String?
+  authorName String
+  authorRole String   @default("CUSTOMER") // CUSTOMER, AGENT, SYSTEM
+  content    String
+  isInternal Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User?         @relation(fields: [userId], references: [id])
+}
+
+model Communication {
+  id         String   @id @default(cuid())
+  customerId String?
+  channel    String   // WHATSAPP, EMAIL, SMS, IN_APP
+  direction  String   // INBOUND, OUTBOUND
+  templateCode String?
+  subject    String?
+  content    String
+  status     String   @default("PENDING") // PENDING, SENT, DELIVERED, READ, FAILED
+  externalMessageId String?
+  metadata   String?
+  sentAt     DateTime?
+  createdAt  DateTime @default(now())
+
+  customer Customer? @relation(fields: [customerId], references: [id])
+}
+
+model Notification {
+  id         String   @id @default(cuid())
+  userId     String?
+  type       String   // ORDER_NEW, ORDER_STATUS, LOW_STOCK, APPROVAL_REQUIRED, BACKUP_FAILED, etc.
+  title      String
+  message    String
+  isRead     Boolean  @default(false)
+  link       String?
+  severity   String   @default("INFO") // INFO, WARN, ERROR, CRITICAL
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
+
+// ============================================================================
+// PRICE APPROVAL WORKFLOW
+// ============================================================================
+
+model PriceApproval {
+  id           String   @id @default(cuid())
+  productId    String
+  requestedBy  String
+  approvedBy   String?
+  originalPrice Float
+  requestedPrice Float
+  reason       String
+  status       String   @default("PENDING") // PENDING, APPROVED, REJECTED, EXPIRED
+  relatedOrderId String?
+  approvedAt   DateTime?
+  createdAt    DateTime @default(now())
+
+  product    Product @relation(fields: [productId], references: [id])
+  requester  User    @relation("PriceApprovalRequester", fields: [requestedBy], references: [id])
+  approver   User?   @relation("PriceApprovalApprover", fields: [approvedBy], references: [id])
+}
+
+// ============================================================================
+// SYSTEM CONFIGURATION & BACKUP LOGS
+// ============================================================================
+
+model SystemSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+  description String?
+  isEncrypted Boolean @default(false)
+  updatedAt DateTime @updatedAt
+}
+
+model BackupLog {
+  id         String   @id @default(cuid())
+  type       String   // DATABASE, FILES, FULL
+  status     String   // SUCCESS, FAILED, IN_PROGRESS
+  fileUrl    String?
+  fileSizeBytes Int?
+  startedAt  DateTime @default(now())
+  completedAt DateTime?
+  errorMessage String?
+  verifiedAt DateTime?  // restoration test verification
+}
+
+model IntegrationConfig {
+  id         String   @id @default(cuid())
+  name       String   @unique // "WHATSAPP_BUSINESS", "FACEBOOK_PAGES", "SSMS_GATEWAY"
+  type       String
+  credentials String?  // encrypted JSON
+  status     String   @default("INACTIVE") // ACTIVE, INACTIVE, ERROR, PENDING_AUTH
+  lastSyncAt DateTime?
+  errorMessage String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  productId  String
+  customerId String?
+  rating     Int      // 1-5
+  title      String?
+  content    String
+  isVerifiedPurchase Boolean @default(false)
+  status     String   @default("PENDING") // PENDING, APPROVED, REJECTED, FLAGGED
+  adminReply String?
+  repliedBy  String?
+  repliedAt  DateTime?
+  createdAt  DateTime @default(now())
+
+  product  Product?  @relation(fields: [productId], references: [id])
+  customer Customer? @relation(fields: [customerId], references: [id])
+  replier  User?     @relation("ReviewReplier", fields: [repliedBy], references: [id])
+}
