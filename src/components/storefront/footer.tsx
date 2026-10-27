@@ -45,10 +45,18 @@ export function StorefrontFooter() {
               {BUSINESS.primaryCategories.slice(0, 5).join(', ')} এবং আরও অনেক কিছু পাচ্ছেন সবচেয়ে ভালো দামে।
             </p>
             <div className="flex items-center gap-2">
-              <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary hover:bg-primary hover:text-primary-foreground transition" aria-label="Facebook"><Facebook className="h-4 w-4" /></a>
-              <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary hover:bg-primary hover:text-primary-foreground transition" aria-label="Instagram"><Instagram className="h-4 w-4" /></a>
-              <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary hover:bg-primary hover:text-primary-foreground transition" aria-label="YouTube"><Youtube className="h-4 w-4" /></a>
-              <a href={`https://wa.me/${BUSINESS.whatsapp}`} className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary hover:bg-primary hover:text-primary-foreground transition" aria-label="WhatsApp"><MessageCircle className="h-4 w-4" /></a>
+              <a href={BUSINESS.social.facebook} target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary hover:bg-blue-600 hover:text-white transition" aria-label="Facebook">
+                <Facebook className="h-4 w-4" />
+              </a>
+              <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary hover:bg-pink-600 hover:text-white transition" aria-label="Instagram">
+                <Instagram className="h-4 w-4" />
+              </a>
+              <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary hover:bg-red-600 hover:text-white transition" aria-label="YouTube">
+                <Youtube className="h-4 w-4" />
+              </a>
+              <a href={`https://wa.me/${BUSINESS.whatsapp}`} target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary hover:bg-emerald-600 hover:text-white transition" aria-label="WhatsApp">
+                <MessageCircle className="h-4 w-4" />
+              </a>
             </div>
           </div>
 
@@ -82,10 +90,11 @@ export function StorefrontFooter() {
           <div className="col-span-2 lg:col-span-1">
             <h4 className="font-semibold text-sm mb-3">যোগাযোগ</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary" /> {BUSINESS.address.line1}, {BUSINESS.address.line2}, {BUSINESS.address.country}</li>
-              <li className="flex items-center gap-2"><Phone className="h-4 w-4 shrink-0 text-primary" /> {BUSINESS.phone}</li>
+              <li className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary" /> {BUSINESS.address.line1}, {BUSINESS.address.line2}, {BUSINESS.address.city} {BUSINESS.address.postalCode}, {BUSINESS.address.country}</li>
+              <li className="flex items-center gap-2"><Phone className="h-4 w-4 shrink-0 text-primary" /> {BUSINESS.phone} (WhatsApp)</li>
+              <li className="flex items-center gap-2"><Phone className="h-4 w-4 shrink-0 text-primary" /> {BUSINESS.phoneAlternate}</li>
               <li className="flex items-center gap-2"><Mail className="h-4 w-4 shrink-0 text-primary" /> {BUSINESS.email}</li>
-              <li className="flex items-center gap-2"><Clock className="h-4 w-4 shrink-0 text-primary" /> শনি-বৃহস্পতি: ১০AM - ৮PM</li>
+              <li className="flex items-center gap-2"><Clock className="h-4 w-4 shrink-0 text-primary" /> {BUSINESS.hours.bn} ({BUSINESS.hours.days})</li>
             </ul>
           </div>
         </div>

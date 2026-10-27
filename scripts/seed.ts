@@ -50,7 +50,10 @@ async function main() {
   console.log('  → Creating branches (Shop 104 and 105)...');
   const branch104 = await db.branch.upsert({
     where: { code: 'SHOP-104' },
-    update: {},
+    update: {
+      address: `${BUSINESS.address.line1}, ${BUSINESS.address.line2}, ${BUSINESS.address.country}`,
+      phone: BUSINESS.phone,
+    },
     create: {
       code: 'SHOP-104',
       name: 'The Dreamer IT Express - Shop 104',
@@ -64,12 +67,15 @@ async function main() {
 
   const branch105 = await db.branch.upsert({
     where: { code: 'SHOP-105' },
-    update: {},
+    update: {
+      address: `${BUSINESS.address.line1}, ${BUSINESS.address.line2}, ${BUSINESS.address.country}`,
+      phone: BUSINESS.phoneAlternate,
+    },
     create: {
       code: 'SHOP-105',
       name: 'The Dreamer IT Express - Shop 105',
       address: `${BUSINESS.address.line1}, ${BUSINESS.address.line2}, ${BUSINESS.address.country}`,
-      phone: BUSINESS.phone,
+      phone: BUSINESS.phoneAlternate,
       email: BUSINESS.email,
       isActive: true,
     },
@@ -379,12 +385,25 @@ async function main() {
   console.log('  → Creating system settings...');
   const settings = [
     { key: 'business.name', value: BUSINESS.name, description: 'Business name' },
-    { key: 'business.phone', value: BUSINESS.phone, description: 'Business phone' },
+    { key: 'business.phone', value: BUSINESS.phone, description: 'Business phone (primary - WhatsApp)' },
+    { key: 'business.phoneAlternate', value: BUSINESS.phoneAlternate, description: 'Business phone (alternate)' },
+    { key: 'business.phoneAlternate2', value: BUSINESS.phoneAlternate2, description: 'Business phone (alternate 2)' },
+    { key: 'business.whatsapp', value: BUSINESS.whatsapp, description: 'WhatsApp number with country code' },
     { key: 'business.email', value: BUSINESS.email, description: 'Business email' },
     { key: 'business.address', value: `${BUSINESS.address.line1}, ${BUSINESS.address.line2}`, description: 'Business address' },
+    { key: 'business.postalCode', value: BUSINESS.address.postalCode, description: 'Postal code' },
+    { key: 'business.hours', value: BUSINESS.hours.bn, description: 'Business hours (Bangla)' },
     { key: 'business.currency', value: BUSINESS.currency, description: 'Default currency' },
     { key: 'business.timezone', value: BUSINESS.timezone, description: 'Business timezone' },
     { key: 'business.defaultLanguage', value: BUSINESS.defaultLanguage, description: 'Default language' },
+    { key: 'business.category', value: BUSINESS.businessCategory, description: 'Business category' },
+    { key: 'social.facebook', value: BUSINESS.social.facebook, description: 'Facebook page URL' },
+    { key: 'social.facebookPageId', value: BUSINESS.social.facebookPageId, description: 'Facebook page ID' },
+    { key: 'social.facebookFollowers', value: String(BUSINESS.social.facebookFollowers), description: 'Facebook followers count' },
+    { key: 'social.instagram', value: BUSINESS.social.instagram, description: 'Instagram URL' },
+    { key: 'social.youtube', value: BUSINESS.social.youtube, description: 'YouTube URL' },
+    { key: 'social.tiktok', value: BUSINESS.social.tiktok, description: 'TikTok URL' },
+    { key: 'social.whatsapp', value: BUSINESS.social.whatsapp, description: 'WhatsApp chat URL' },
     { key: 'platform.version', value: '1.0.0', description: 'Platform version' },
     { key: 'platform.lastBackupAt', value: '', description: 'Last successful backup timestamp' },
     { key: 'seo.bingVerification', value: '', description: 'Bing Webmaster verification token' },

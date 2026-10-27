@@ -12,26 +12,42 @@ export function AboutPage() {
       <h1 className="text-3xl font-bold mb-4">আমাদের সম্পর্কে</h1>
       <div className="prose prose-sm max-w-none space-y-4 text-foreground/80">
         <p>
-          <strong>{BUSINESS.name}</strong> বাংলাদেশের একটি প্রিমিয়াম টেকনোলজি রিটেইল প্রতিষ্ঠান। আমরা {BUSINESS.address.line1}, {BUSINESS.address.line2}-এ অবস্থিত দুটি দোকান (Shop 104 এবং 105) থেকে সারা দেশে ল্যাপটপ, ডেস্কটপ পিসি, গেমিং রিগ, কম্পিউটার কম্পোনেন্টস, মনিটর, নেটওয়ার্কিং ইকুইপমেন্ট এবং সকল ধরনের টেক প্রোডাক্ট সরবরাহ করি।
+          <strong>{BUSINESS.name}</strong> বাংলাদেশের একটি প্রিমিয়াম টেকনোলজি রিটেইল প্রতিষ্ঠান। আমরা {BUSINESS.address.line1}-এ অবস্থিত আমাদের দুটি দোকান (Shop 104 এবং 105) থেকে সারা দেশে ল্যাপটপ, ডেস্কটপ পিসি, গেমিং রিগ, কম্পিউটার কম্পোনেন্টস, মনিটর, নেটওয়ার্কিং ইকুইপমেন্ট এবং সকল ধরনের টেক প্রোডাক্ট সরবরাহ করি।
         </p>
         <p>
-          আমাদের লক্ষ্য হলো বাংলাদেশের ক্রেতাদের জন্য ১০০% অরিজিনাল প্রোডাক্ট নিশ্চিত করা, অথেন্টিক ওয়ারেন্টি প্রদান করা এবং প্রতিযোগিতামূলক দামে টেক প্রোডাক্ট সরবরাহ করা। আমরা শুধু প্রোডাক্ট বিক্রি করি না, আমরা আমাদের ক্রেতাদের সঠিক টেকনিক্যাল সাপোর্ট ও পরামর্শ দিয়ে সাহায্য করি।
+          আমাদের বিশেষত্ব হলো প্রিমিয়াম কোয়ালিটির রিফারবিশড এবং ইউজড ল্যাপটপ (HP EliteBook, Dell Latitude, Lenovo ThinkPad), ব্র্যান্ড নিউ ল্যাপটপ (Apple MacBook, Microsoft Surface, ASUS, Acer, MSI), গেমিং ল্যাপটপ এবং কাস্টম পিসি বিল্ড। প্রতিটি প্রোডাক্ট কাজের আগে টেস্টেড এবং ভেরিফাইড।
+        </p>
+        <p>
+          আমাদের লক্ষ্য হলো বাংলাদেশের ক্রেতাদের জন্য ১০০% অরিজিনাল প্রোডাক্ট নিশ্চিত করা, অথেন্টিক ওয়ারেন্টি প্রদান করা এবং প্রতিযোগিতামূলক দামে টেক প্রোডাক্ট সরবরাহ করা। আমরা শুধু প্রোডাক্ট বিক্রি করি না, আমরা আমাদের ক্রেতাদের সঠিক টেকনিক্যাল সাপোর্ট ও পরামর্শ দিয়ে সাহায্য করি। কাজের আগে ভিডিও কলে প্রোডাক্ট দেখে নিশ্চিত হতে পারেন।
         </p>
         <h3 className="font-semibold text-lg pt-2">আমাদের সেবাসমূহ</h3>
         <ul className="list-disc pl-6 space-y-1.5">
-          <li>ল্যাপটপ, ডেস্কটপ ও গেমিং পিসি বিক্রি</li>
-          <li>কাস্টম পিসি বিল্ড (PC Configurator সুবিধা)</li>
+          <li>প্রিমিয়াম ইউজড ও রিফারবিশড ল্যাপটপ (HP EliteBook, Dell Latitude, Lenovo ThinkPad)</li>
+          <li>ব্র্যান্ড নিউ ল্যাপটপ (Apple MacBook, Microsoft Surface, ASUS, Acer, MSI)</li>
+          <li>গেমিং ও গ্রাফিক্স ল্যাপটপ</li>
+          <li>2-in-1 ও x360 কনভার্টিবল ল্যাপটপ</li>
+          <li>অফিস, ফ্রিল্যান্সিং ও বিজনেসের জন্য কাস্টম পিসি বিল্ড</li>
           <li>কম্পিউটার কম্পোনেন্টস ও পেরিফেরালস</li>
           <li>নেটওয়ার্কিং ইকুইপমেন্ট ও আইটি সলিউশন</li>
-          <li>অথেন্টিক ওয়ারেন্টি সাপোর্ট</li>
-          <li>সারা বাংলাদেশে ডেলিভারি</li>
+          <li>অথেন্টিক ওয়ারেন্টি সাপোর্ট (১৫ দিন রিপ্লেসমেন্ট, ৫ বছর সার্ভিস)</li>
+          <li>ভিডিও কল সাপোর্ট - কিনার আগে লাইভ দেখুন</li>
+          <li>সারা বাংলাদেশে দ্রুত ডেলিভারি</li>
+        </ul>
+        <h3 className="font-semibold text-lg pt-2">আমাদের প্রতিশ্রুতি</h3>
+        <ul className="list-disc pl-6 space-y-1.5">
+          <li>প্রতিটি প্রোডাক্ট কাজের আগে টেস্টেড</li>
+          <li>১৫ দিনের রিপ্লেসমেন্ট ওয়ারেন্টি (ইউজড ল্যাপটপে)</li>
+          <li>৩০ দিনের রিপ্লেসমেন্ট (ওপেন বক্স ল্যাপটপে)</li>
+          <li>৫ বছরের সার্ভিস সাপোর্ট</li>
+          <li>১০০% অরিজিনাল প্রোডাক্ট গ্যারান্টি</li>
+          <li>ক্যাশ অন ডেলিভারি সুবিধা</li>
         </ul>
       </div>
       <div className="grid sm:grid-cols-3 gap-4 mt-8">
         {[
           { icon: Shield, title: '১০০% অরিজিনাল', desc: 'অথেন্টিক প্রোডাক্ট' },
           { icon: Truck, title: 'সারা দেশে ডেলিভারি', desc: 'দ্রুত ও নিরাপদ' },
-          { icon: Clock, title: '৭ দিন সাপোর্ট', desc: 'বৃহস্পতি-শনি' },
+          { icon: Clock, title: BUSINESS.hours.bn, desc: BUSINESS.hours.days },
         ].map((s, i) => (
           <Card key={i} className="p-4 text-center">
             <s.icon className="h-8 w-8 mx-auto text-primary mb-2" />
@@ -58,16 +74,35 @@ export function ContactPage() {
               <div className="font-medium">{BUSINESS.name}</div>
               <div className="text-muted-foreground">{BUSINESS.address.line1}</div>
               <div className="text-muted-foreground">{BUSINESS.address.line2}</div>
-              <div className="text-muted-foreground">{BUSINESS.address.country}</div>
+              <div className="text-muted-foreground">{BUSINESS.address.city} {BUSINESS.address.postalCode}, {BUSINESS.address.country}</div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Phone className="h-5 w-5 text-primary shrink-0" />
-            <div>
-              <div className="text-xs text-muted-foreground">ফোন</div>
-              <a href={`tel:${BUSINESS.phone}`} className="text-sm font-medium hover:text-primary">{BUSINESS.phone}</a>
+
+          {/* Multiple phone numbers */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <MessageCircle className="h-5 w-5 text-emerald-600 shrink-0" />
+              <div>
+                <div className="text-xs text-muted-foreground">WhatsApp (প্রাথমিক)</div>
+                <a href={`https://wa.me/${BUSINESS.whatsapp}`} target="_blank" rel="noopener noreferrer" className="text-sm font-medium hover:text-primary">{BUSINESS.phone}</a>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Phone className="h-5 w-5 text-primary shrink-0" />
+              <div>
+                <div className="text-xs text-muted-foreground">Shop 104</div>
+                <a href={`tel:${BUSINESS.phoneAlternate}`} className="text-sm font-medium hover:text-primary">{BUSINESS.phoneAlternate}</a>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Phone className="h-5 w-5 text-primary shrink-0" />
+              <div>
+                <div className="text-xs text-muted-foreground">Shop 105</div>
+                <a href={`tel:${BUSINESS.phoneAlternate2}`} className="text-sm font-medium hover:text-primary">{BUSINESS.phoneAlternate2}</a>
+              </div>
             </div>
           </div>
+
           <div className="flex items-center gap-3">
             <Mail className="h-5 w-5 text-primary shrink-0" />
             <div>
@@ -79,9 +114,20 @@ export function ContactPage() {
             <Clock className="h-5 w-5 text-primary shrink-0" />
             <div>
               <div className="text-xs text-muted-foreground">খোলা থাকে</div>
-              <div className="text-sm font-medium">বৃহস্পতি - শনি: ১০AM - ৮PM</div>
+              <div className="text-sm font-medium">{BUSINESS.hours.bn}</div>
+              <div className="text-xs text-muted-foreground">{BUSINESS.hours.days}</div>
             </div>
           </div>
+
+          {/* Facebook link */}
+          <a href={BUSINESS.social.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition">
+            <svg className="h-6 w-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            <div>
+              <div className="text-sm font-medium text-blue-900">Facebook পেজ</div>
+              <div className="text-xs text-blue-700">{BUSINESS.social.facebookFollowers}+ ফলোয়ার · মেসেজ করুন</div>
+            </div>
+          </a>
+
           <Button className="w-full gap-2" onClick={() => window.open(`https://wa.me/${BUSINESS.whatsapp}`)}>
             <MessageCircle className="h-4 w-4" /> WhatsApp এ মেসেজ করুন
           </Button>
@@ -91,11 +137,20 @@ export function ContactPage() {
         </Card>
         <Card className="p-6 bg-secondary/30">
           <h3 className="font-semibold mb-3">ম্যাপ লোকেশন</h3>
-          <div className="aspect-square bg-secondary rounded-lg flex items-center justify-center">
-            <MapPin className="h-12 w-12 text-primary/40" />
+          <div className="aspect-square bg-secondary rounded-lg overflow-hidden flex items-center justify-center">
+            <iframe
+              title="Shop Location"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3650.962!2d90.3929!3d23.7337!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjPCsDQ0JzAxLjMiTiA5MMKwMjMnMzQuNSJF!5e0!3m2!1sen!2sbd!4v1700000000000!5m2!1sen!2sbd"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
           </div>
           <p className="text-xs text-muted-foreground mt-3 text-center">
-            ICT Bhaban (Elecson Complex), 1st Floor, Shop 104 & 105, Subastu Arcade, Dhaka
+            Suvastu Arcade (ICT Bhaban), Level 1, Shop 104 & 105<br />
+            New Elephant Road, Dhaka 1205
           </p>
         </Card>
       </div>

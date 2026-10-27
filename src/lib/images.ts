@@ -7,6 +7,21 @@ export const PRODUCT_IMAGES = {
     'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/76cf3ba16228.jpg',
     'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/1e7aec5d250f.jpg',
   ],
+  // HP EliteBook 1040 G6 360 - From Dreamer IT Facebook page
+  hpEliteBook1040: [
+    'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/cc55681379f3.png',
+    'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/4ddba0029932.png',
+  ],
+  // HP EliteBook 845 G10 AMD Ryzen - From Dreamer IT Facebook page
+  hpEliteBook845: [
+    'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/6b8989a41720.jpeg',
+    'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/04ad6a2e9573.jpg',
+  ],
+  // MacBook Air M2
+  macbookAir: [
+    'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/2a0fa97cd683.jpg',
+    'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/c798b1adedec.jpg',
+  ],
   // Gaming Laptops
   gamingLaptop: [
     'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/3842fdd50dac.jpg',

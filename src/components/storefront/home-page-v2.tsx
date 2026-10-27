@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatMoney } from '@/lib/format';
 import { ProductCard } from '@/components/storefront/product-card';
+import { FacebookBanner } from '@/components/storefront/facebook-banner';
 import { PRODUCT_IMAGES, BRAND_INFO } from '@/lib/images';
 import {
   Cpu, Monitor, Laptop, HardDrive, MemoryStick, Mouse, Keyboard,
@@ -487,6 +488,11 @@ export function HomePage() {
         </div>
       </section>
 
+      {/* Facebook social proof */}
+      <section className="container mx-auto px-4">
+        <FacebookBanner />
+      </section>
+
       {/* Showroom showcase */}
       <section className="container mx-auto px-4">
         <Card className="overflow-hidden">
@@ -500,14 +506,15 @@ export function HomePage() {
               </Badge>
               <h3 className="text-2xl md:text-3xl font-bold mb-3">সরাসরি আমাদের দোকানে আসুন</h3>
               <p className="text-muted-foreground mb-4">
-                Subastu Arcade, ICT Bhaban-এ অবস্থিত আমাদের দুটি দোকান (Shop 104 ও 105) থেকে সরাসরি প্রোডাক্ট দেখে কিনুন।
+                Suvastu Arcade, ICT Bhaban (Level 1), New Elephant Road-এ অবস্থিত আমাদের দুটি দোকান (Shop 104 ও 105) থেকে সরাসরি প্রোডাক্ট দেখে কিনুন। ভিডিও কলেও দেখতে পারেন।
               </p>
               <div className="space-y-2 mb-4">
                 <div className="flex items-start gap-3">
                   <MapPin className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div className="text-sm">
-                    <div className="font-medium">Shop 104 & 105</div>
-                    <div className="text-muted-foreground">{BUSINESS.address.line1}, {BUSINESS.address.line2}</div>
+                    <div className="font-medium">Shop 104 & 105, Level 1</div>
+                    <div className="text-muted-foreground">{BUSINESS.address.line1}</div>
+                    <div className="text-muted-foreground">{BUSINESS.address.city} {BUSINESS.address.postalCode}, {BUSINESS.address.country}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

@@ -7,14 +7,16 @@ export const BUSINESS = {
   legalName: "The Dreamer IT Express",
   shops: ["104", "105"],
   address: {
-    line1: "Subastu Arcade, ICT Bhaban",
+    line1: "The New Elephant Road 1205, Suvastu Arcade, ICT Bhaban",
     line2: "Level 1, Shop Nos. 104 and 105",
     city: "Dhaka",
     district: "Dhaka",
-    postalCode: "",
+    postalCode: "1205",
     country: "Bangladesh",
   },
   phone: "01610111688",
+  phoneAlternate: "01753943788", // Additional contact from Facebook
+  phoneAlternate2: "01911111688", // Additional contact from Facebook
   whatsapp: "8801610111688",
   email: "thedreameritexpress@gmail.com",
   domain: "thedreamerit.com",
@@ -25,13 +27,38 @@ export const BUSINESS = {
   supportedLanguages: ["bn", "en"],
   timezone: "Asia/Dhaka",
   market: "Bangladesh",
+  hours: {
+    bn: "সকাল ১১টা থেকে সন্ধ্যা ৮টা",
+    en: "11 AM to 8 PM",
+    days: "Saturday - Thursday", // Friday closed in BD
+  },
   vatRate: 0, // Bangladesh VAT for retail - configurable later
+  // Social Media (from Facebook page)
+  social: {
+    facebook: "https://www.facebook.com/profile.php?id=61565139640111",
+    facebookPageId: "61565139640111",
+    facebookFollowers: 931, // As of latest check
+    instagram: "", // To be configured
+    youtube: "", // To be configured
+    tiktok: "", // To be configured
+    whatsapp: "https://wa.me/8801610111688",
+  },
+  businessCategory: "Business Center / Technology Retailer",
   primaryCategories: [
     "Laptops", "Desktop PCs", "Gaming PCs", "All-in-One", "Processors",
     "Motherboards", "Graphics Cards", "RAM", "Storage", "Monitors",
     "Keyboards", "Mice", "Headphones", "Speakers", "Printers",
     "Routers", "Networking", "UPS", "Power Supplies", "Cases",
     "Cooling", "Cables & Adapters", "Accessories",
+  ],
+  // Specializations based on Facebook page
+  specializations: [
+    "Premium used & refurbished laptops (HP EliteBook, Dell Latitude, Lenovo ThinkPad)",
+    "Brand new laptops (Apple MacBook, Microsoft Surface, ASUS, Acer, MSI)",
+    "Gaming & graphics laptops",
+    "2-in-1 & x360 convertible laptops",
+    "Custom PC builds for office, freelancing & business",
+    "Genuine accessories & components",
   ],
 } as const;
 

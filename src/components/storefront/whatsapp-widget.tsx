@@ -53,6 +53,13 @@ export function WhatsAppWidget() {
     },
   ];
 
+  // Phone numbers from Facebook page
+  const phoneNumbers = [
+    { label: 'WhatsApp (প্রাথমিক)', number: BUSINESS.phone, type: 'whatsapp' },
+    { label: 'Shop 104', number: BUSINESS.phoneAlternate, type: 'call' },
+    { label: 'Shop 105', number: BUSINESS.phoneAlternate2, type: 'call' },
+  ];
+
   return (
     <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
       {/* Expanded panel */}
@@ -108,18 +115,42 @@ export function WhatsAppWidget() {
 
             <div className="mt-4 pt-4 border-t border-border">
               <div className="text-xs text-muted-foreground mb-2">📱 সরাসরি যোগাযোগ</div>
-              <div className="grid grid-cols-2 gap-2">
-                <a href={`tel:${BUSINESS.phone}`} className="flex items-center justify-center gap-1.5 p-2 bg-card rounded-md border border-border/40 hover:bg-secondary text-xs font-medium">
-                  <Phone className="h-3 w-3 text-primary" /> কল
-                </a>
-                <a href={`https://wa.me/${BUSINESS.whatsapp}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 p-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 text-xs font-medium">
-                  <MessageCircle className="h-3 w-3" /> চ্যাট
-                </a>
+              <div className="space-y-1.5">
+                {phoneNumbers.map((p, i) => (
+                  <a
+                    key={i}
+                    href={p.type === 'whatsapp' ? `https://wa.me/88${p.number}` : `tel:${p.number}`}
+                    target={p.type === 'whatsapp' ? '_blank' : undefined}
+                    rel={p.type === 'whatsapp' ? 'noopener noreferrer' : undefined}
+                    className="flex items-center justify-between gap-2 p-2 bg-card rounded-md border border-border/40 hover:border-emerald-500 text-xs"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      {p.type === 'whatsapp' ? (
+                        <MessageCircle className="h-3 w-3 text-emerald-600" />
+                      ) : (
+                        <Phone className="h-3 w-3 text-blue-600" />
+                      )}
+                      <span className="font-medium">{p.label}</span>
+                    </span>
+                    <span className="font-mono">{p.number}</span>
+                  </a>
+                ))}
               </div>
+
+              {/* Facebook link */}
+              <a
+                href={BUSINESS.social.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 flex items-center justify-center gap-2 p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-xs font-medium"
+              >
+                <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                ফেসবুক পেজ ({BUSINESS.social.facebookFollowers}+ ফলোয়ার)
+              </a>
             </div>
 
-            <div className="mt-3 flex items-center gap-1.5 text-[10px] text-muted-foreground justify-center">
-              <MapPin className="h-2.5 w-2.5" /> Shop 104 & 105, ICT Bhaban, Dhaka
+            <div className="mt-3 flex items-center gap-1.5 text-[10px] text-muted-foreground justify-center text-center">
+              <MapPin className="h-2.5 w-2.5" /> Suvastu Arcade, ICT Bhaban (Level 1)<br />New Elephant Road, Dhaka 1205
             </div>
           </div>
         </div>
