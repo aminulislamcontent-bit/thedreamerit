@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatMoney } from '@/lib/format';
 import { ProductCard } from '@/components/storefront/product-card';
 import { FacebookBanner } from '@/components/storefront/facebook-banner';
+import { PremiumHero } from '@/components/storefront/premium-hero';
 import { PRODUCT_IMAGES, BRAND_INFO } from '@/lib/images';
 import {
   Cpu, Monitor, Laptop, HardDrive, MemoryStick, Mouse, Keyboard,
@@ -56,141 +57,8 @@ export function HomePage() {
 
   return (
     <div className="space-y-12 pb-12">
-      {/* HERO SECTION - Premium with video-quality background */}
-      <section className="relative overflow-hidden border-b border-border/60">
-        {/* Background image with overlay */}
-        <div className="absolute inset-0">
-          <img
-            src={PRODUCT_IMAGES.heroTech}
-            alt=""
-            className="w-full h-full object-cover opacity-30"
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-background/80"></div>
-          <div className="absolute inset-0 tech-grid opacity-30"></div>
-        </div>
-
-        {/* Decorative blobs */}
-        <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-emerald-500/20 blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-violet-500/20 blur-3xl"></div>
-
-        <div className="container relative mx-auto px-4 py-12 md:py-20">
-          <div className="grid lg:grid-cols-[1.1fr_1fr] gap-8 items-center">
-            {/* Left: Text content */}
-            <div className="space-y-6">
-              <Badge variant="secondary" className="rounded-full px-3 py-1.5 gap-1.5 bg-emerald-500/10 text-emerald-700 border-emerald-500/30">
-                <Sparkles className="h-3 w-3" /> Bangladesh's #1 Premium Tech Retailer
-              </Badge>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
-                আপনার টেক পার্টনার,<br />
-                <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-violet-600 bg-clip-text text-transparent">
-                  দ্য ড্রিমার আইটি
-                </span>
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-md leading-relaxed">
-                ল্যাপটপ, ডেস্কটপ, গেমিং পিসি, কম্পোনেন্টস এবং সকল টেক প্রোডাক্ট পাচ্ছেন সবচেয়ে ভালো দামে, অরিজিনাল ওয়ারেন্টি ও ভিডিও কল সাপোর্ট সহ।
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Button size="lg" onClick={() => navigate({ name: 'catalog' })} className="gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg">
-                  প্রোডাক্ট ব্রাউজ করুন <ArrowRight className="h-4 w-4" />
-                </Button>
-                <Button size="lg" variant="outline" onClick={() => navigate({ name: 'pc-configurator' })} className="gap-2 backdrop-blur bg-background/80">
-                  <Cpu className="h-4 w-4" /> কাস্টম পিসি বিল্ড
-                </Button>
-              </div>
-
-              {/* Trust badges */}
-              <div className="grid grid-cols-3 gap-3 pt-4 max-w-md">
-                {TRUST_BADGES.slice(0, 3).map((t, i) => (
-                  <div key={i} className="flex flex-col items-center text-center gap-1 p-2 rounded-lg bg-background/60 backdrop-blur border border-border/40">
-                    <t.icon className="h-5 w-5 text-emerald-600" />
-                    <div className="text-[11px] font-semibold">{t.title}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right: Hero showcase - product image with stats overlay */}
-            <div className="relative">
-              <Card className="relative p-6 bg-card/90 backdrop-blur-xl border-emerald-500/30 shadow-2xl overflow-hidden">
-                {/* Glow effect */}
-                <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl"></div>
-
-                <div className="relative">
-                  {/* Top ribbon */}
-                  <div className="absolute -top-2 -right-2 z-10 flex flex-col items-end gap-2">
-                    <Badge className="bg-red-500 hover:bg-red-500 text-white shadow-lg">
-                      <Clock className="mr-1 h-3 w-3" /> লাইভ অফার
-                    </Badge>
-                  </div>
-
-                  {/* Hero product image */}
-                  <div className="aspect-[4/3] rounded-xl overflow-hidden bg-gradient-to-br from-emerald-50 to-violet-50 mb-4 relative">
-                    <img
-                      src={PRODUCT_IMAGES.gamingPc[0]}
-                      alt="Premium Gaming PC Build"
-                      className="w-full h-full object-cover"
-                    />
-                    {/* Floating 3D badge */}
-                    <div className="absolute top-3 left-3 bg-violet-600 text-white text-xs px-2 py-1 rounded-md backdrop-blur">
-                      <Sparkles className="inline h-3 w-3 mr-1" /> 3D View Available
-                    </div>
-                    {/* Price tag */}
-                    <div className="absolute bottom-3 left-3 bg-background/95 backdrop-blur px-3 py-2 rounded-lg shadow-lg">
-                      <div className="text-[10px] text-muted-foreground">শুরু</div>
-                      <div className="font-bold text-emerald-600">৳৮৫,০০০</div>
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 bg-secondary/50 rounded-lg">
-                      <div className="text-xs text-muted-foreground">হ্যাপি কাস্টমার</div>
-                      <div className="text-xl font-bold text-emerald-600">৫০০০+</div>
-                    </div>
-                    <div className="p-3 bg-secondary/50 rounded-lg">
-                      <div className="text-xs text-muted-foreground">প্রোডাক্ট রেঞ্জ</div>
-                      <div className="text-xl font-bold text-violet-600">১০,০০০+</div>
-                    </div>
-                    <div className="p-3 bg-secondary/50 rounded-lg">
-                      <div className="text-xs text-muted-foreground">ব্র্যান্ড</div>
-                      <div className="text-xl font-bold text-amber-600">৩৭+</div>
-                    </div>
-                    <div className="p-3 bg-secondary/50 rounded-lg">
-                      <div className="text-xs text-muted-foreground">রেটিং</div>
-                      <div className="text-xl font-bold text-rose-600 flex items-center gap-1">
-                        ৪.৮ <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* CTA */}
-                  <Button
-                    onClick={() => navigate({ name: 'pc-configurator' })}
-                    className="w-full mt-4 gap-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
-                  >
-                    <Cpu className="h-4 w-4" /> আপনার পিসি কনফিগার করুন
-                  </Button>
-                </div>
-              </Card>
-
-              {/* Floating WhatsApp CTA */}
-              <a
-                href={`https://wa.me/${BUSINESS.whatsapp}?text=${encodeURIComponent('আমি একটি প্রোডাক্ট সম্পর্কে জানতে চাই।')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="absolute -bottom-4 -left-4 flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-full shadow-xl hover:bg-emerald-700 transition group"
-              >
-                <MessageCircle className="h-4 w-4 fill-white" />
-                <div className="text-xs">
-                  <div className="font-bold">ভিডিও কলে দেখুন</div>
-                  <div className="opacity-90">{BUSINESS.phone}</div>
-                </div>
-                <span className="absolute inset-0 rounded-full bg-emerald-400 opacity-75 animate-ping -z-10"></span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Premium Hero V3 - With 7 video-quality images + 3D rotating vase */}
+      <PremiumHero />
 
       {/* Trust bar */}
       <section className="container mx-auto px-4 -mt-6 relative z-10">

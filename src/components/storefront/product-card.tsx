@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatMoney, getStockStatus } from '@/lib/format';
-import { ShoppingCart, BarChart3, Check, Package2, MessageCircle, Eye, Sparkles, Clock } from 'lucide-react';
+import { ShoppingCart, BarChart3, Check, Package2, MessageCircle, Eye, Sparkles, Clock, Shield } from 'lucide-react';
 import { apiPost } from '@/hooks/use-api';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';
@@ -177,6 +177,10 @@ export function ProductCard({ product }: ProductCardProps) {
                 <span className="text-[10px] text-emerald-600 font-semibold">৳{savingsAmount.toLocaleString('en-IN')} সাশ্রয়</span>
               </div>
             )}
+            {/* Min price floor indicator - shows the authorized minimum selling price */}
+            <div className="text-[9px] text-muted-foreground/70 mt-0.5 flex items-center gap-1">
+              <Shield className="h-2.5 w-2.5" /> সর্বনিম্ন দাম: {formatMoney(product.minSellingPrice || product.sellingPrice)}
+            </div>
           </div>
           <Button
             size="icon"

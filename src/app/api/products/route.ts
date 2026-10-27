@@ -91,6 +91,8 @@ export const GET = apiHandler(async (req: NextRequest) => {
       sellingPrice: p.sellingPrice,
       compareAtPrice: p.compareAtPrice,
       promotionalPrice: p.promotionalPrice,
+      minSellingPrice: p.minSellingPrice,
+      costPrice: p.costPrice,
       status: p.status,
       isFeatured: p.isFeatured,
       has3dModel: p.has3dModel,

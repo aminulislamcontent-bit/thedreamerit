@@ -13,7 +13,7 @@ import {
   TrendingUp, FileText, BarChart3, Megaphone, Share2, Headphones,
   Bell, Building2, ArrowLeftRight, RotateCcw, Shield, Star,
   Wallet, UserCog, Search, LogOut, ChevronLeft, Store, Database,
-  Plug, ShieldAlert, AlertCircle, Crown,
+  Plug, ShieldAlert, AlertCircle, Crown, Bot, Video, Cloud,
 } from 'lucide-react';
 import { DashboardModule } from '@/components/admin/dashboard-module';
 import { ProductsModule } from '@/components/admin/products-module';
@@ -35,6 +35,10 @@ import { AuditModule } from '@/components/admin/audit-module';
 import { SettingsModule } from '@/components/admin/settings-module';
 import { CommissionsModule } from '@/components/admin/commissions-module';
 import { FinanceModule } from '@/components/admin/finance-module';
+import { EmployeePortalModule } from '@/components/admin/employee-portal-module';
+import { AiAutomationModule } from '@/components/admin/ai-automation-module';
+import { HostingDashboardModule } from '@/components/admin/hosting-dashboard-module';
+import { AiVideoStudioModule } from '@/components/admin/ai-video-studio-module';
 
 interface NavItem {
   module: AdminModule;
@@ -62,17 +66,26 @@ const NAV_SECTIONS: Array<{ title: string; items: NavItem[] }> = [
       { module: 'suppliers', label: 'সাপ্লায়ার', icon: Store, permission: 'procurement.view' },
       { module: 'customers', label: 'কাস্টমার', icon: Users, permission: 'crm.view' },
       { module: 'employees', label: 'কর্মী ও HR', icon: UserCog, permission: 'hr.view' },
+      { module: 'employee-portal', label: 'এমপ্লয়ি পোর্টাল', icon: UserCog, permission: 'hr.view' },
       { module: 'commissions', label: 'কমিশন', icon: Wallet, permission: 'commission.view' },
       { module: 'finance', label: 'হিসাবনিকাশ', icon: TrendingUp, permission: 'finance.view' },
     ],
   },
   {
-    title: 'মার্কেটিং',
+    title: 'AI অটোমেশন',
     items: [
+      { module: 'ai-automation', label: 'AI অটোমেশন সার্ভার', icon: Bot },
+      { module: 'ai-video-studio', label: 'AI ভিডিও স্টুডিও', icon: Video },
       { module: 'content-studio', label: 'AI কনটেন্ট স্টুডিও', icon: FileText, permission: 'content.view' },
       { module: 'seo', label: 'SEO ম্যানেজমেন্ট', icon: Search, permission: 'seo.view' },
       { module: 'marketing', label: 'ক্যাম্পেইন', icon: Megaphone, permission: 'marketing.view' },
       { module: 'social', label: 'সোশ্যাল পাবলিশিং', icon: Share2, permission: 'marketing.view' },
+    ],
+  },
+  {
+    title: 'ইনফ্রাস্ট্রাকচার',
+    items: [
+      { module: 'hosting-dashboard', label: 'হোস্টিং ড্যাশবোর্ড', icon: Cloud },
     ],
   },
   {
@@ -242,12 +255,16 @@ export function AdminDashboard() {
           {adminModule === 'suppliers' && <SuppliersModule />}
           {adminModule === 'customers' && <CustomersModule />}
           {adminModule === 'employees' && <EmployeesModule />}
+          {adminModule === 'employee-portal' && <EmployeePortalModule />}
           {adminModule === 'commissions' && <CommissionsModule />}
           {adminModule === 'finance' && <FinanceModule />}
           {adminModule === 'content-studio' && <ContentStudioModule />}
           {adminModule === 'seo' && <SeoModule />}
           {adminModule === 'marketing' && <MarketingModule />}
           {adminModule === 'social' && <SocialModule />}
+          {adminModule === 'ai-automation' && <AiAutomationModule />}
+          {adminModule === 'ai-video-studio' && <AiVideoStudioModule />}
+          {adminModule === 'hosting-dashboard' && <HostingDashboardModule />}
           {adminModule === 'support' && <SupportModule />}
           {adminModule === 'notifications' && <NotificationsModule />}
           {adminModule === 'branches' && <BranchesModule />}

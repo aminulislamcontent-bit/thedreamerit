@@ -67,6 +67,17 @@ export const PRODUCT_IMAGES = {
     'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/4ede090942a4.jpg',
     'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/6961b495e0c6.jpg',
   ],
+  // Premium video-quality hero carousel (8 images for rotating showcase)
+  heroCarousel: [
+    'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/f46e09009ac5.jpg', // 4K gaming PC
+    'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/cb64a5263e83.jpg', // Premium gaming tower
+    'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/5b9720642a3c.jpg', // Gaming PC RGB
+    'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/b6c5d066dc06.jpg', // Premium laptop 1080p
+    'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/aae345a9cd28.jpg', // Laptop 4k showcase
+    'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/4ac887a75c9c.jpg', // RGB gaming setup
+    'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/a175a68eb040.jpg', // Gaming keyboard neon
+    'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/c2a29d8f7e07.jpg', // Gaming PC build
+  ],
   // Hero backgrounds
   heroTech: 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/921c65ec628e.jpg',
   heroPortrait: 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/00261492645b.jpg',
