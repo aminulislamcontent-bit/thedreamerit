@@ -48,6 +48,7 @@ export type AdminModule =
   | 'social'
   | 'ai-automation'
   | 'ai-video-studio'
+  | 'ai-product-wizard'
   | 'hosting-dashboard'
   | 'support'
   | 'notifications'

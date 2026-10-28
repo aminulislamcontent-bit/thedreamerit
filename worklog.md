@@ -357,3 +357,94 @@ Stage Summary:
   - v5-component-dialog.png (334 KB) - component selection dialog
   - v5-pc-configurator-complete.png (404 KB) - fully configured build (৳56,700)
   - v5-compatibility-error.png (416 KB) - mismatched CPU+Motherboard error shown
+
+---
+Task ID: 6
+Agent: Main Z.ai Agent (AI Product Wizard)
+Task: Build AI-driven product wizard: photo + Bangla voice → AI generates 3D model, description, why buy, benefits, differentiators, marketing content, video script → auto-publish to website/Facebook/YouTube/Instagram → invoice with min price + offer price. Marketing guide that AI follows.
+
+Work Log:
+- Created src/lib/marketing-guide.ts with comprehensive AI marketing guide:
+  - 8 sections: Input Collection, AI Processing, Content Rules, Platform Content, 3D View, Pricing Rules, Auto-Publishing, Lead-to-Invoice Pipeline
+  - Brand voice guidelines (good vs bad examples)
+  - AI behavior rules (honesty, language, frequency limits)
+  - Platform-specific content rules for Website, Facebook, YouTube, Instagram, WhatsApp
+  - Pricing hierarchy: Cost Price → Min Selling Price → Selling Price → Offer Price → Compare-at Price
+  - 8-stage lead-to-invoice pipeline visualization
+- Created 3 API endpoints:
+  1. POST /api/ai-wizard/upload-voice - Accepts audio file (webm/mp3/wav/ogg/m4a), uses Z.ai ASR for Bangla transcription
+  2. POST /api/ai-wizard/upload-photo - Accepts multiple images (jpg/png/webp), saves to /uploads/products/
+  3. POST /api/ai-wizard/process - Main AI pipeline:
+     - VLM analyzes product photos (brand, model, type, condition)
+     - LLM generates: product name, brand, model, short/full description (Bangla), specs, whyBuy (3-5 reasons), keyBenefits (3-5), differentiators (2-3), estimated price, min selling price, offer price, warranty, condition
+     - LLM generates platform-specific marketing content (Facebook caption+hashtags, Instagram, YouTube title+description, WhatsApp message)
+     - LLM generates video script (30-60s with scenes: visual, voiceover, text, background music, CTA)
+     - Returns invoice preview with min price + offer price + savings
+  4. POST /api/ai-wizard/publish - Publishes to all platforms:
+     - Creates product in database (with status PUBLISHED or DRAFT based on autoPublish flag)
+     - Creates content draft in Content Studio
+     - Creates marketing campaign
+     - Creates publishing jobs for Facebook, Instagram, YouTube, WhatsApp
+     - Generates invoice with invoice number, min price, offer price, savings
+- Created src/components/admin/ai-product-wizard-module.tsx with 5-step wizard:
+  Step 1 (Input): 
+    - Photo upload (drag-drop, multiple, preview grid with remove option)
+    - Voice recording (MediaRecorder API, live timer, stop button)
+    - Voice file upload (alternative to recording)
+    - Audio playback after upload
+    - Transcription display in green box
+    - Example voice text shown
+    - "AI দিয়ে কনটেন্ট তৈরি করুন" button
+  Step 2 (Processing):
+    - Animated spinner with 6 processing steps
+    - Shows: Voice transcription, Photo analysis (VLM), Product description (GLM-4), Social media content, Video script, Price & invoice
+  Step 3 (Review):
+    - Product info card (name, brand, model, condition, descriptions - editable)
+    - 3-column grid: Why Buy / Key Benefits / Differentiators
+    - Pricing & Invoice card with 4 price types:
+      * সর্বনিম্ন দাম (Min Selling Price) - red, with "এর নিচে বিক্রি নিষেধ"
+      * বিক্রয় দাম (Selling Price) - blue
+      * অফার দাম (Offer Price) - emerald
+      * কাস্টমার সাশ্রয় (Savings) - emerald highlight
+    - Social media content preview (Facebook, Instagram, YouTube, WhatsApp)
+    - Video script with scenes (time, visual, voiceover, text)
+    - Auto-publish toggle (auto vs manual approval)
+    - Publish button
+  Step 4 (Publishing): Loading animation
+  Step 5 (Done):
+    - Success card
+    - Published platforms grid (Website, Facebook, Instagram, YouTube, WhatsApp) with success/skip badges
+    - Invoice preview with all pricing
+    - Error list if any
+    - "আরেকটি প্রোডাক্ট যোগ করুন" reset button
+- Marketing Guide Dialog:
+  - Accessible via "মার্কেটিং গাইড" button in header
+  - Shows all 8 sections as expandable accordions
+  - Includes: input collection steps, AI processing steps, content rules, platform rules, 3D view rules, pricing types, auto-publish order, lead-to-invoice stages
+- Added 'ai-product-wizard' to AdminModule type in store.ts
+- Added Wand2 icon import to admin-dashboard.tsx
+- Added "AI প্রোডাক্ট উইজার্ড" as first item in "AI অটোমেশন" sidebar section
+- Added module rendering in main content switch
+
+Stage Summary:
+- ✅ Complete AI Product Wizard built with 5-step flow
+- ✅ Photo upload (multiple, with preview)
+- ✅ Bangla voice recording (MediaRecorder) + file upload
+- ✅ AI transcription via Z.ai ASR (Bangla language support)
+- ✅ AI photo analysis via Z.ai VLM
+- ✅ AI content generation via GLM-4 LLM (product description, why buy, benefits, differentiators)
+- ✅ Platform-specific marketing content (Facebook, Instagram, YouTube, WhatsApp)
+- ✅ Video script generation (scenes with visual/voiceover/text)
+- ✅ Pricing with 4 types: Cost, Min Selling, Selling, Offer + Savings
+- ✅ Invoice generation with min price + offer price display
+- ✅ Auto-publish to Website + Facebook + Instagram + YouTube + WhatsApp
+- ✅ Marketing Guide document (8 sections, expandable)
+- ✅ Lint passes with 0 errors
+- ✅ Site responds with 200 OK
+- 📸 3 new V6 screenshots: AI wizard input, marketing guide dialog
+
+Key Innovation: The company owner (even if not highly educated) can now:
+1. Take a photo of the product with their phone
+2. Record their voice in Bangla describing the product (no rules, just talk)
+3. Click one button
+4. AI does EVERYTHING: transcribes voice, analyzes photo, writes product description in Bangla, generates "why buy" reasons, lists benefits, explains differentiators, creates marketing posts for all social media, writes video script, sets minimum price + offer price, creates invoice, and publishes to all platforms automatically.

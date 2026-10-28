@@ -13,7 +13,7 @@ import {
   TrendingUp, FileText, BarChart3, Megaphone, Share2, Headphones,
   Bell, Building2, ArrowLeftRight, RotateCcw, Shield, Star,
   Wallet, UserCog, Search, LogOut, ChevronLeft, Store, Database,
-  Plug, ShieldAlert, AlertCircle, Crown, Bot, Video, Cloud,
+  Plug, ShieldAlert, AlertCircle, Crown, Bot, Video, Cloud, Wand2,
 } from 'lucide-react';
 import { DashboardModule } from '@/components/admin/dashboard-module';
 import { ProductsModule } from '@/components/admin/products-module';
@@ -39,6 +39,7 @@ import { EmployeePortalModule } from '@/components/admin/employee-portal-module'
 import { AiAutomationModule } from '@/components/admin/ai-automation-module';
 import { HostingDashboardModule } from '@/components/admin/hosting-dashboard-module';
 import { AiVideoStudioModule } from '@/components/admin/ai-video-studio-module';
+import { AiProductWizardModule } from '@/components/admin/ai-product-wizard-module';
 
 interface NavItem {
   module: AdminModule;
@@ -74,6 +75,7 @@ const NAV_SECTIONS: Array<{ title: string; items: NavItem[] }> = [
   {
     title: 'AI অটোমেশন',
     items: [
+      { module: 'ai-product-wizard', label: 'AI প্রোডাক্ট উইজার্ড', icon: Wand2 },
       { module: 'ai-automation', label: 'AI অটোমেশন সার্ভার', icon: Bot },
       { module: 'ai-video-studio', label: 'AI ভিডিও স্টুডিও', icon: Video },
       { module: 'content-studio', label: 'AI কনটেন্ট স্টুডিও', icon: FileText, permission: 'content.view' },
@@ -264,6 +266,7 @@ export function AdminDashboard() {
           {adminModule === 'social' && <SocialModule />}
           {adminModule === 'ai-automation' && <AiAutomationModule />}
           {adminModule === 'ai-video-studio' && <AiVideoStudioModule />}
+          {adminModule === 'ai-product-wizard' && <AiProductWizardModule />}
           {adminModule === 'hosting-dashboard' && <HostingDashboardModule />}
           {adminModule === 'support' && <SupportModule />}
           {adminModule === 'notifications' && <NotificationsModule />}
