@@ -3,6 +3,10 @@ import { notFound } from 'next/navigation';
 import { Card, Crumbs, Notice, PageHead } from '@/components/ui';
 import { BUSINESS } from '@/lib/core/identity';
 
+// Nonce CSP requires a dynamic render; generateStaticParams must not leave these HTML
+// pages without the per-request nonce.
+export const dynamic = 'force-dynamic';
+
 const POLICIES: Record<string, { title: string; intro: string; sections: Array<[string, string]> }> = {
   delivery: {
     title: 'ডেলিভারি নীতি',
@@ -46,8 +50,6 @@ const POLICIES: Record<string, { title: string; intro: string; sections: Array<[
     ],
   },
 };
-
-export function generateStaticParams() { return Object.keys(POLICIES).map((slug) => ({ slug })); }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

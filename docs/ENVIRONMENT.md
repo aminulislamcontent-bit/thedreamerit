@@ -8,6 +8,8 @@ Copy `.env.example` to `.env.local`. **Never commit `.env`, `.env.local`, `data/
 | `NEXT_PUBLIC_SITE_URL` | production | Canonical/sitemap/structured-data base URL | `http://localhost:3000` |
 | `APP_SECRET` | production | Server-side integrity token seed; generate with `openssl rand -hex 32` | unset (dev fallback) |
 | `CATALOGUE_MODE` | no | `live` keeps drafts/demo records off the public site | `live` |
+| `ENABLE_INTERNAL_SCHEDULER` | no | `1` starts the DB-locked in-process maintenance scheduler; `0` leaves scheduling to external cron/systemd | `1` |
+| `SCHEDULER_INTERVAL_MS` | no | In-process tick interval, clamped to ≥ 30000 ms | `60000` |
 | `BOOTSTRAP_ADMIN_EMAIL` | no | Email of the first super admin | `admin@thedreamerit.local` |
 | `BOOTSTRAP_ADMIN_PASSWORD` | production | Password of the first super admin. If unset, a random password is written to `data/bootstrap-credentials.txt` (mode 0600) | random |
 | `AI_PROVIDER_API_KEY`, `AI_PROVIDER_MODEL`, `AI_PROVIDER_BASE_URL` | no | Optional OpenAI-compatible rewording of verified facts. Without a key, the local verified-field-only template engine is used and drafts are labelled `template` | unset |

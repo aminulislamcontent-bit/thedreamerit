@@ -5,7 +5,7 @@ Status vocabulary (as required by the master specification): **Implemented and v
 | # | Specification area | Status | Evidence / gap |
 | --- | --- | --- | --- |
 | 1 | Inspect builder capabilities | Implemented and verified | Node 22.22.3, npm registry, `node:sqlite` 3.51, GitHub auth checked; constraints recorded |
-| 2 | Architecture & normalized data models | Implemented and verified | 74 tables, FKs, CHECK constraints, 20+ indexes, migrations + seed; integration test asserts counts |
+| 2 | Architecture & normalized data models | Implemented and verified | 77 tables (74 original + 2 scheduler + 1 derivative), FKs, CHECK constraints, 20+ indexes, 3 migrations + seed; integration test asserts counts |
 | 3 | Authentication & permissions | Implemented and verified | scrypt, sessions, 8 roles/35 permissions, CSRF, rate limits, TOTP MFA, audit; unit + HTTP smoke tests |
 | 4 | Catalogue & product-detail templates | Implemented and verified | 9-section `/products/[slug]` renders (admin preview verified); publication gate enforced over HTTP |
 | 4b | ≥15 verified models per category, verified specs/media/prices | **Blocked by an external dependency** | 0 verified models; no authorized manufacturer/distributor data or licensed media supplied. The rule engine, shortfall reporting and import pipeline are implemented and tested |
@@ -26,14 +26,19 @@ Status vocabulary (as required by the master specification): **Implemented and v
 | 16b | Search Console / Analytics integration | Blocked by an external dependency | Owner-verified property/measurement ID required |
 | 17 | Social & marketing automation | Implemented but not verified | Approval → submit → platform-confirmation workflow implemented and integration-tested; no platform API call was made (no owner credentials) |
 | 18 | Super Admin Dashboard | Implemented and verified | All figures computed from real DB rows; net profit explicitly unavailable without expense records |
-| 19 | Security & permissions | Implemented and verified (with residual risks) | See `docs/SECURITY_REVIEW.md`; `npm audit` 0 vulnerabilities; CSP/HSTS/WAF not implemented |
+| 19 | Security & permissions | Implemented and verified (with residual risks) | See `docs/SECURITY_REVIEW.md`; `npm audit` 0 vulnerabilities; nonce CSP/HSTS/header policy implemented and HTTP-verified; **WAF/IP allow-list and browser CSP testing still outstanding** |
 | 20 | Database & integrations | Implemented and verified (local DB) | SQLite migrations, indexes, FKs, safe import. Postgres/Supabase port and external APIs are outstanding |
 | 21 | Backups & monitoring | Implemented and verified | Backup creation, SHA-256, integrity_check, scratch restore, health endpoint, failed jobs, logs — all executed |
-| 21b | Off-site backups, retention automation, alert delivery | Not implemented | Requires owner-provided encrypted storage + scheduler + notification channel |
-| 22 | Testing & acceptance | Partially implemented | 24 automated tests, typecheck, lint, build, audit, smoke tests executed; browser E2E for media viewers, video and checkout flows not executed |
+| 21b | Off-site backups, retention automation, alert delivery | Partially implemented | Local job-run retention, backup-freshness warnings and `Admin → Backups` are implemented; encrypted off-site upload, production retention policy and external alert delivery still require owner-provided storage/notification credentials |
+| 22 | Testing & acceptance | Partially implemented | 28 automated tests, typecheck, lint, build, audit, CLI checks, login/RBAC/CSP HTTP smoke executed; browser E2E for media viewers, video and checkout flows, load/pentest and container build not executed |
 | 23 | Implementation order | Implemented and verified | Work followed the specified sequence; independent work continued when external services were unavailable |
-| 24 | Documentation & deliverables | Implemented and verified | Source, schema/migrations, public site, admin/employee dashboards, product template, media admin, viewers, completeness reporting, modules, API/env/deploy/backup docs, test results, security review, dependency list, this report |
-| 25 | Final completion directive | Partially implemented | Real integrated application delivered; catalogue publication intentionally blocked by the no-fabrication rule and missing authorized data |
+| 24 | Documentation & deliverables | Implemented and verified | Source, 3 schema migrations, public site, 18 admin/ERP pages, product template, media admin, viewers, completeness reporting, modules, API/env/deploy/backup/scheduler docs, container + CI config, test results, security review, dependency list, this report |
+| 25 | Final completion directive | Partially implemented | Real integrated application delivered; catalogue publication intentionally blocked by the no-fabrication rule and missing authorized data. PR #1 also needs a canonical-codebase decision because `main` now contains a separate unrelated project |
+| 26 | Nonce CSP / HSTS / response hardening | Implemented and verified | Unit tests + HTTP smoke: CSP header, matching nonce in HTML, HSTS only on HTTPS, clickjacking/referrer/permissions headers. Browser CSP enforcement and WAF remain outstanding |
+| 27 | Scheduled maintenance runner | Implemented and verified | 6 DB-locked jobs, run ledger, internal tick + CLI, admin/health status; `npm run jobs:tick` ran 6/6 and unit tests verified cleanup/single-claim. Production cron/systemd not deployed |
+| 28 | Responsive image derivatives | Implemented and verified (synthetic fixture) | Sharp WebP derivatives tested with a generated non-product fixture; real licensed product media unavailable, so no live derivative was published |
+| 29 | Container image | Implemented but not verified | `Dockerfile`, `.dockerignore`, `docker-compose.yml` supplied; Docker unavailable in sandbox, image not built or run |
+| 30 | CI workflow | Implemented but not verified | `.github/workflows/ci.yml` added for tests/typecheck/lint/build/CLI checks/audit; remote GitHub Actions result must be observed after push |
 
 ## Domain
 
@@ -42,4 +47,4 @@ Status vocabulary (as required by the master specification): **Implemented and v
 
 ## Go / no-go
 
-**No-go for a live retail launch.** The application, database, admin tools, security controls and verification gates are working, but there are 0 verified products, 0 licensed media assets, 0 activated categories, no domain, no payment gateway and no external platform credentials. Launch requires the owner dependencies in `docs/OUTSTANDING_DEPENDENCIES.md` and the completion of Phase 2 in `DEPLOYMENT_PLAN.md`.
+**No-go for a live retail launch.** The application, database, admin tools, security controls and verification gates are working, but there are 0 verified products, 0 licensed media assets, 0 activated categories, no domain, no payment gateway and no external platform credentials. PR #1 also requires the owner to decide which of the two conflicting codebases is canonical before merging. Launch requires the owner dependencies in `docs/OUTSTANDING_DEPENDENCIES.md` and the completion of Phase 2 in `DEPLOYMENT_PLAN.md`.

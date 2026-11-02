@@ -2,6 +2,10 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { BUSINESS } from '@/lib/core/identity';
 
+// A fresh nonce CSP requires dynamic rendering; static prerenders cannot carry
+// the per-request nonce that Next.js applies to its inline bootstrap scripts.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   title: { default: `${BUSINESS.name} | কম্পিউটার ও প্রযুক্তি`, template: `%s | ${BUSINESS.name}` },

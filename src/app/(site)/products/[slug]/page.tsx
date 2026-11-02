@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { headers } from 'next/headers';
 import { getProductBySlug, getMedia, getSpecs, mediaCompletenessFor } from '@/lib/server/catalogue';
 import { all, scalar } from '@/lib/server/database';
 import { productStructuredData, siteUrl } from '@/lib/server/seo';
@@ -55,6 +56,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
   const available = inventoryRows > 0 ? availableFor(p.id) : null;
   const price = assessPrice({ sellingAmount: p.price_amount, minimumSellingAmount: p.minimum_selling_amount, unitCost: null, priceVerified: !!p.price_verified, priceSourceUrl: p.price_source_url });
   const structured = productStructuredData(p.id);
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
   const requiredSpecs = SPEC_TEMPLATES[p.spec_template] ?? [];
   const reviews = all<{ id: number; rating: number; body: string; created_at: string }>(
     "SELECT id, rating, body, created_at FROM reviews WHERE product_id = ? AND verified_purchase = 1 AND moderation_status = 'approved'", [p.id]);
@@ -68,7 +70,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
 
   return (
     <>
-      {structured ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structured).replace(/</g, '\\u003c') }} /> : null}
+      {structured ? <script nonce={nonce} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structured).replace(/</g, '\\u003c') }} /> : null}
       <Crumbs items={[
         { label: 'হোম', href: '/' }, { label: 'পণ্য', href: '/products' },
         { label: p.category_name, href: `/categories/${p.category_slug}` }, { label: p.model_name },

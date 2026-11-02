@@ -44,8 +44,15 @@ Social jobs currently fail with an explicit reason and are recorded in `failed_j
 ## 5. Technical work still outstanding
 
 - Postgres/Supabase production port + migrations + `pg_dump`/`pg_restore` procedure.
-- Automated browser E2E tests for the WebGL/360°/video/lightbox interactions with real assets.
-- Image resizing/compression pipeline (responsive sizes, alt text, lazy loading, aspect ratio and fallback are implemented; actual derivative generation needs an image-processing dependency).
-- CSP/HSTS/security headers at the proxy, WAF, IP allow-listing for `/admin`.
-- Scheduled job runner (cron/systemd) for backups, low-stock notifications, publishing schedule and failed-job alerts.
+- Automated browser E2E tests for the WebGL/360°/video/lightbox interactions with real licensed assets.
+- WAF, IP allow-listing for `/admin`, and a production host with real TLS/DNS. The app now emits nonce CSP/HSTS/security headers, but these still need browser and proxy verification in the real deployment.
+- Off-site encrypted backup upload, retention automation, alert delivery and a production-host restore rehearsal. The local backup, integrity check and scratch-restore paths are verified.
 - Search Console/Analytics/Click-tracking reporting integrations.
+- A built and runtime-tested container image. `Dockerfile`, `.dockerignore` and `docker-compose.yml` are supplied but Docker was unavailable in this sandbox, so the image was not built here.
+- Real licensed product media to exercise the verified WebP derivative pipeline beyond its synthetic, non-product test fixture.
+
+Implemented in the continuation: DB-locked scheduled maintenance jobs, internal/external runner options, responsive WebP derivative generation for approved/licensed images, nonce CSP/HSTS response headers, CI workflow and container configuration. Those additions do not supply catalogue data, domains, payment/social credentials or a production database.
+
+## 6. Repository merge decision (owner)
+
+`main` now contains a separate 221-file Next.js 16 / Prisma project pushed by `alaminiubateee969-cmd` (`4a90c8b`) with unrelated Git history. This branch contains the no-fabrication, verification-gated implementation. PR #1 is `CONFLICTING` / `DIRTY`. The owner must choose which codebase is canonical, or explicitly approve archiving one under a labelled `legacy/` path, before any merge. No destructive conflict resolution was performed.

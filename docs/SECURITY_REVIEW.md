@@ -21,13 +21,14 @@ Date: 2026-11-02. Scope: the code in this repository, its dependencies and the e
 | Data isolation | Customer pages filter by `user_id`; admin pages require permissions; media route checks approval before public serving | `/account/orders/[id]` ownership check; `/media/[file]` gate |
 | Dependency security | `npm audit --omit=dev` → 0 vulnerabilities after `postcss` override and `zod` upgrade | executed 2026-11-02 |
 | Integrity | Backups SHA-256 + `PRAGMA integrity_check` + scratch restore | executed successfully |
+| Response hardening (continuation) | Per-request nonce CSP (`strict-dynamic`, no script `unsafe-inline`), HSTS on HTTPS, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, COOP/CORP; JSON-LD script carries the nonce | `tests/security-headers.test.ts` + HTTP header smoke after production build |
 
 ## Residual risks / not yet done
 
 1. **No TLS in the dev/preview setup.** Production must terminate TLS at a reverse proxy and set `NODE_ENV=production` so cookies are `Secure`.
 2. **Bootstrap credentials.** If `BOOTSTRAP_ADMIN_PASSWORD` is not set, a random password is written to `data/bootstrap-credentials.txt`. That file must be deleted after first login; the password must be changed and MFA enabled.
 3. **SQLite for local runtime.** `node:sqlite` is marked experimental in Node 22 and single-file SQLite is not a multi-writer production database. A Postgres/Supabase port is outstanding (see `docs/BACKUP_RESTORE.md`).
-4. **No automated browser security testing** (XSS/CSRF in rendered DOM, CSP, clickjacking headers). Recommended before launch: add a CSP, `Referrer-Policy`, `Permissions-Policy`, HSTS at the proxy, and run an E2E suite.
+4. **No automated browser security testing** (XSS/CSRF in rendered DOM, CSP enforcement in a real browser, clickjacking behaviour). CSP/HSTS and the other headers are now implemented and unit-tested, but a browser E2E/DAST run is still required before launch.
 5. **Session/CSRF cookies are not rotated on privilege change**; session invalidation on role change is manual (delete sessions rows).
 6. **No WAF, no IP allow-list for `/admin`, no brute-force alerting beyond audit rows.**
 7. **External integrations unconfigured** — no credential was requested, stored or transmitted. Any future integration must use official APIs and server-side secret storage.
@@ -36,4 +37,4 @@ Date: 2026-11-02. Scope: the code in this repository, its dependencies and the e
 
 ## Checks not performed
 
-No penetration test, no SAST/DAST tool run, no load test, no third-party audit, no browser-based E2E security test. These are listed as outstanding, not claimed as passed.
+No penetration test, no SAST/DAST tool run, no load test, no third-party audit, no browser-based E2E security test. The continuation run verified CSP/HSTS at HTTP-header level and with unit tests, and found no committed real secrets (only two intentional placeholder `APP_SECRET` lines), but that does **not** replace browser CSP enforcement testing or a DAST/pentest. These remain outstanding, not claimed as passed.

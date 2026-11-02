@@ -63,18 +63,22 @@ caddy validate --config Caddyfile
 caddy run --config Caddyfile
 ```
 
-Caddy terminates TLS and proxies to `127.0.0.1:3000`; the app itself binds `0.0.0.0` so container/preview hosts work too. Add security headers (HSTS, CSP, Referrer-Policy, Permissions-Policy) at the proxy before launch.
+Caddy terminates TLS and proxies to `127.0.0.1:3000`; the app itself binds `0.0.0.0` so container/preview hosts work too. The application emits a per-request nonce CSP, HSTS on HTTPS, `Referrer-Policy`, `Permissions-Policy` and clickjacking headers from `src/middleware.ts`; the proxy should not replace the CSP with a static value. Verify the combined header set in a browser before launch.
 
-## 4. Scheduled jobs
+## 4. Scheduled jobs & media derivatives
+
+The DB-locked runner is documented in [docs/SCHEDULER.md](docs/SCHEDULER.md). It is enabled in-process by default (`ENABLE_INTERNAL_SCHEDULER=1`); set it to `0` when external cron is the only runner.
 
 ```cron
+*/5 * * * * cd /srv/dreamerit && npm run jobs:tick >> /var/log/dreamerit-jobs.log 2>&1
 0 2 * * *  cd /srv/dreamerit && npm run backup >> /var/log/dreamerit-backup.log 2>&1
 5 2 * * *  cd /srv/dreamerit && npm run verify:backup -- "$(ls -t backups/app-*.db | head -1)" >> /var/log/dreamerit-backup.log 2>&1
+0 3 * * *  cd /srv/dreamerit && npm run media:derivatives >> /var/log/dreamerit-media.log 2>&1
 */15 * * * * cd /srv/dreamerit && npm run check:health >> /var/log/dreamerit-health.log 2>&1
 0 8 * * *  cd /srv/dreamerit && npm run check:links >> /var/log/dreamerit-links.log 2>&1
 ```
 
-Low-stock notifications, social scheduling and failed-job alerts are surfaced in the admin dashboards; wiring them to email/SMS requires the owner's SMTP/API credentials.
+`npm run media:derivatives` generates WebP `thumb`/`medium`/`large` files only for approved, permission-granted, locally stored product images. Low-stock notifications, social scheduling and failed-job alerts are surfaced in the admin dashboards; wiring them to email/SMS requires the owner's SMTP/API credentials.
 
 ## 5. Health, monitoring, rollback
 
@@ -99,4 +103,13 @@ Full backup/restore procedure: [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md).
 
 ## Container note
 
-A `Dockerfile` is intentionally **not** provided: the current build uses `node:sqlite` with a local file and no multi-stage image has been tested. A container image must mount a persistent volume for `data/` and `uploads/` and must be tested before being called production-ready.
+A multi-stage `Dockerfile`, `.dockerignore` and `docker-compose.yml` are supplied. The image uses Node 22's `node:sqlite`, runs `npm run db:setup` at startup, and mounts persistent volumes for `data/`, `uploads/` and `backups/`.
+
+```bash
+cp .env.example .env.local   # set APP_SECRET, NEXT_PUBLIC_SITE_URL, BOOTSTRAP_ADMIN_PASSWORD
+docker compose build
+docker compose up -d
+curl http://localhost:3000/api/health
+```
+
+**Docker was not available in the sandbox, so the image was not built or run here.** It is configuration, not a verified production artifact. For multi-writer/high availability, complete the Postgres/Supabase port before using a replicated container deployment; single-file SQLite is not a multi-writer database.

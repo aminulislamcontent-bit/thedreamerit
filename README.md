@@ -10,6 +10,8 @@ A real, integrated e-commerce + ERP application for **The Dreamer IT Express** (
 npm install
 cp .env.example .env.local         # set APP_SECRET and other values
 npm run db:setup                   # apply migrations + seed baseline config
+npm run jobs:tick                  # optional: one maintenance-job tick
+npm run media:derivatives          # optional: approved-image WebP derivatives
 npm run dev                        # http://localhost:3000
 ```
 
@@ -31,7 +33,7 @@ curl http://localhost:3000/api/health
 
 | Area | Where |
 | --- | --- |
-| 74-table relational schema, migrations, indexes, FKs, constraints | `db/migrations/001_schema.sql`, `src/lib/server/database.ts` |
+| 77-table relational schema, 3 migrations, indexes, FKs, constraints | `db/migrations/*.sql`, `src/lib/server/database.ts` |
 | Authentication, scrypt hashing, sessions, RBAC (8 roles / 35 permissions), CSRF, rate limiting, TOTP MFA, audit log | `src/lib/server/auth.ts`, `src/lib/core/password.ts`, `src/lib/core/totp.ts` |
 | Catalogue rules: 15 distinct verified models per activated category, duplicate/variant handling, publication gate | `src/lib/core/catalogue-rules.ts`, `src/lib/server/catalogue.ts` |
 | Product admin: specs, variants, SKU/barcode, bulk JSON import/export, revisions, archive, price floor & approval, SEO validation | `src/app/(admin)/admin/products/**`, `src/app/actions/catalogue.ts` |
@@ -48,6 +50,11 @@ curl http://localhost:3000/api/health
 | SEO automation: sitemap, robots, canonical, metadata validation, duplicate/broken-link checks, redirects | `src/lib/server/seo.ts`, `src/app/(admin)/admin/seo/page.tsx` |
 | Social publishing workflow: approval → submit → **platform confirmation required** before `published` | `src/lib/server/social.ts`, `src/app/(admin)/admin/social/page.tsx` |
 | Super Admin dashboard computed from actual DB records, health endpoint, failed-job monitoring, backups with checksum + tested restore | `src/lib/server/dashboard.ts`, `src/lib/server/monitoring.ts`, `src/lib/server/backup.ts`, `scripts/` |
+| Per-request nonce CSP, HSTS on HTTPS, clickjacking/referrer/permissions headers | `src/lib/core/security-headers.ts`, `src/middleware.ts`, `tests/security-headers.test.ts` |
+| DB-locked maintenance scheduler with 6 jobs, run ledger, internal + CLI runners, admin/health status | `src/lib/server/jobs.ts`, `src/instrumentation.ts`, `scripts/jobs-tick.ts`, `docs/SCHEDULER.md` |
+| Responsive WebP derivatives for approved/licensed local images, served through the permission-checked media route | `src/lib/server/derivatives.ts`, `src/app/media/[file]/route.ts`, `scripts/media-derivatives.ts` |
+| `Admin → Backups` page for backup records, verification, failed jobs and scheduler state | `src/app/(admin)/admin/backups/page.tsx` |
+| Container + CI configuration | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `.github/workflows/ci.yml` |
 
 ## Non-negotiable rules enforced in code
 
@@ -62,15 +69,16 @@ curl http://localhost:3000/api/health
 
 | Check | Result |
 | --- | --- |
-| `npm test` (node:test, 24 tests) | 24 pass, 0 fail |
+| `npm test` (node:test, 28 tests) | 28 pass, 0 fail |
 | `npm run typecheck` | clean |
 | `npm run lint` | no warnings or errors |
-| `npm run build` | Next.js 15.5.28 production build succeeded, 53 routes |
+| `npm run build` | Next.js 15.5.28 production build succeeded, 51 route entries (50 dynamic + 1 static), middleware 34.9 kB |
 | `npm audit --omit=dev` | 0 vulnerabilities |
-| Runtime smoke test | 25 public + 18 admin routes, `/api/health`, sitemap/robots, CSRF-protected server actions, publication-gate rejection — see `TEST_RESULTS.md` |
-| Backup / restore | checksum verified, `PRAGMA integrity_check=ok`, 74 tables restored into a scratch database |
+| Runtime smoke test | 29 public/system + 17 authenticated admin routes HTTP 200, anonymous `/admin` 307, nonce CSP header + matching HTML nonce, HSTS with forwarded HTTPS, full login 303 → `/admin`, expected 404 for demo/order-detail routes — see `TEST_RESULTS.md` |
+| Scheduler / derivatives | `npm run jobs:tick` ran 6/6 jobs; synthetic non-product fixture generated 3 WebP derivatives |
+| Backup / restore | checksum verified, `PRAGMA integrity_check=ok`, 77 tables restored into a scratch database |
 
-Not verified: browser rendering of a real product-specific GLB/glTF asset or 360° image sequence (no licensed product-specific assets exist yet), and any external platform API behaviour (no owner credentials).
+Not verified: browser rendering of a real product-specific GLB/glTF asset or 360° image sequence (no licensed product-specific assets exist yet), browser CSP enforcement/DAST, a built container image (Docker unavailable here), the remote CI run, and any external platform API behaviour (no owner credentials). PR #1 is currently conflicting with a separate project later pushed to `main`; see `FINAL_REPORT.md` and `worklog.md`.
 
 ## Documentation
 
@@ -86,6 +94,8 @@ Not verified: browser rendering of a real product-specific GLB/glTF asset or 360
 | [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md) | Backup, integrity, tested restore |
 | [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md) | Security controls and residual risks |
 | [docs/OUTSTANDING_DEPENDENCIES.md](docs/OUTSTANDING_DEPENDENCIES.md) | Everything needing owner credentials or authorized data |
+| [docs/SCHEDULER.md](docs/SCHEDULER.md) | Maintenance jobs, runners and cron examples |
+| [Dockerfile](Dockerfile), [docker-compose.yml](docker-compose.yml), [.github/workflows/ci.yml](.github/workflows/ci.yml) | Container and CI configuration (not built/run in the sandbox) |
 | [worklog.md](worklog.md) | Implementation log |
 
 ## Domain note

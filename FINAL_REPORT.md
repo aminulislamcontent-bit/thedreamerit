@@ -10,7 +10,7 @@ This report states exactly what is working, what was verified, what is still mis
 
 ## 1. Headline result
 
-A **real, integrated enterprise application** was built, compiled and run — not a mockup. It has a 74-table relational database, authentication/RBAC, a full public storefront, 18 admin/ERP pages, a 9-section individual product template, real Three.js/WebGL and 360° viewers, catalogue verification gates, transactional inventory, POS/orders/payments, HR/commission, CRM, AI content studio, SEO automation, social publishing workflow, dashboards, backups and monitoring.
+A **real, integrated enterprise application** was built, compiled and run — not a mockup. It has a 77-table relational database (74 original + 2 scheduler + 1 media-derivative), authentication/RBAC, a full public storefront, 18 admin/ERP pages, a 9-section individual product template, real Three.js/WebGL and 360° viewers, catalogue verification gates, transactional inventory, POS/orders/payments, HR/commission, CRM, AI content studio, SEO automation, social publishing workflow, dashboards, backups and monitoring.
 
 **The live product catalogue is intentionally empty.** The specification forbids inventing real products, specifications, prices, stock, warranties, media or reviews, and forbids publishing without verified data and approved media. No authorized manufacturer/distributor data, licensed media or price sources were supplied, so no product was published. This is the enforced rule working correctly, not a missing homepage.
 
@@ -29,12 +29,30 @@ A **real, integrated enterprise application** was built, compiled and run — no
 
 ---
 
+## 1a. Continuation after the initial handover
+
+The local checkout's Git metadata had been reset to the initial commit while the remote branch still held commit `14b96f8`; it was realigned without changing the working tree. Separately, `main` now contains a **different 221-file Next.js 16 / Prisma project** pushed by `alaminiubateee969-cmd` (`4a90c8b`), with unrelated history and overlapping paths. PR #1 is therefore `CONFLICTING` / `DIRTY`. **Neither codebase was overwritten.** A canonical-codebase decision is required before any merge; see `worklog.md`.
+
+Independent work completed on this branch after the initial handover:
+
+| Addition | Status | Verification |
+| --- | --- | --- |
+| Per-request nonce CSP, HSTS on HTTPS, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, COOP/CORP | Implemented and verified | `tests/security-headers.test.ts`; production HTTP smoke confirmed the CSP header, the matching nonce in HTML, `/admin` 307, and `Strict-Transport-Security: max-age=31536000` with `X-Forwarded-Proto: https` |
+| DB-locked maintenance scheduler (6 jobs, run ledger, internal + CLI/cron runners, admin/health status) | Implemented and verified | `tests/jobs.test.ts`; `npm run jobs:tick` ran 6/6 jobs; in-process startup hook executed a forced due tick; `Admin → Security` and `/api/health` show real state |
+| Responsive WebP derivative generation for approved, licensed local images, with permission-checking delivery | Implemented and verified with a synthetic fixture | `tests/derivatives.test.ts` generated 3 deterministic derivatives from a generated solid-colour **non-product** fixture; live DB correctly reports 0 sources |
+| Missing `Admin → Backups` page | Implemented and verified | 18 admin pages now exist; 17 renderable without a fabricated order returned HTTP 200 with a valid session |
+| `Dockerfile`, `.dockerignore`, `docker-compose.yml`, GitHub Actions CI workflow | Implemented but not verified | Docker is unavailable in this sandbox, so no image was built; the CI workflow is committed for the remote runner |
+
+Updated verification totals: **28 automated tests**, **77 tables**, **18 admin pages**, **51 build route entries (50 dynamic + 1 static)**, **29 public/system URLs HTTP 200**, **17 authenticated admin pages HTTP 200**, full login `303 → /admin`, unpublished demo product `404`, and expected `404` on dynamic order-detail routes because no order was fabricated. Browser E2E with licensed media, a built container image, production cron/systemd and off-site backup upload remain unverified.
+
+---
+
 ## 2. What is working (and how it was verified)
 
 | Area | Working | Verification |
 | --- | --- | --- |
-| Foundation | 74 tables, FK/CHECK/index constraints, idempotent migrations, deterministic seed | `npm run db:setup`, integration test |
-| Security | scrypt hashes, hashed sessions, 8 roles/35 permissions, server-side permission checks, CSRF double-submit, rate limits, TOTP MFA, audit events, secure media route | unit tests, `/admin` 307 anonymous, 18 admin pages 200 authenticated, real CSRF-protected POST |
+| Foundation | 77 tables, FK/CHECK/index constraints, 3 idempotent migrations, deterministic seed | `npm run db:setup`, integration test |
+| Security | scrypt hashes, hashed sessions, 8 roles/35 permissions, server-side permission checks, CSRF double-submit, rate limits, TOTP MFA, audit events, secure media route, per-request nonce CSP/HSTS headers | unit tests, `/admin` 307 anonymous, 17 renderable admin pages 200 authenticated, real CSRF-protected POST, HTTP header smoke |
 | Catalogue | 105 categories with category-specific spec templates; product editor with specs, variants, SKU/barcode, price floor, SEO validation, revisions, archive, bulk JSON import/export, duplicate detection; 15-model progress dashboard with exact shortfall; publication gate | 5 catalogue unit tests + integration test + HTTP publish rejection |
 | Product page | All 9 required sections: identity, media gallery, price/purchase, specs, information, comparison, feedback, SEO transparency, trust/support; canonical/OG/Product+Breadcrumb JSON-LD; no fabricated rating/price/stock | admin preview HTTP 200, public 404 for unpublished demo |
 | Media | Validated uploads (MIME/size/name), GLB/glTF/video/360° frames, alt text/caption/source/licence/permission/review, primary/reorder, failed-job tracking, permission-checked delivery; real Three.js viewer (rotate/zoom/pan, touch, fullscreen, keyboard, lazy, error fallback) and drag/swipe 360° viewer; explicit media-tier labels | unit tests, build, page smoke tests |
@@ -43,20 +61,23 @@ A **real, integrated enterprise application** was built, compiled and run — no
 | People | Employees, attendance, shifts, configurable commission rules, payroll export, CRM (leads/tickets/consent/preferences) | unit tests + page smoke |
 | Content/SEO/marketing | Verified-field-only Bangla/English drafts (11 kinds), no-fabrication validator, revision history and human approval; sitemap, robots, canonical, metadata/duplicate/link checks, redirects; social approval→submit→platform-confirmation workflow | unit tests, integration test, HTTP action producing 2 drafts + 2 revisions + 2 audit rows |
 | Dashboards | Super Admin aggregates computed from real records, including explicit "net profit unavailable" until real expenses exist; integration health, failed jobs, backups, security alerts | integration test + page smoke |
-| Ops | `/api/health`, app logs, failed jobs, backup with SHA-256 + `PRAGMA integrity_check` + scratch restore | executed successfully (74 tables restored) |
+| Ops | `/api/health`, app logs, failed jobs, 6 DB-locked scheduled jobs, `Admin → Backups`, backup with SHA-256 + `PRAGMA integrity_check` + scratch restore | executed successfully (77 tables restored) |
+| Scheduler | `scheduled_jobs` / `scheduled_job_runs`, `BEGIN IMMEDIATE` claims, internal tick + `npm run jobs:tick`, admin/health visibility | `npm run jobs:tick` ran 6/6 jobs; unit test verified cleanup and single-claim behaviour; in-process startup hook ran a forced due tick |
+| Media derivatives | Sharp WebP `thumb`/`medium`/`large` files for approved, licensed local images; permission-checked derivative delivery | 3 deterministic derivatives generated from a synthetic non-product test fixture; live DB reports 0 eligible sources |
+| Response headers | Nonce CSP, HSTS on HTTPS, clickjacking/referrer/permissions/COOP/CORP headers | unit tests + HTTP smoke with matching nonce in HTML |
 
 ### Commands actually executed
 
 | Command | Result |
 | --- | --- |
-| `npm test` | **24 tests, 24 pass, 0 fail** |
+| `npm test` | **28 tests, 28 pass, 0 fail** |
 | `npm run typecheck` | clean (strict TypeScript) |
 | `npm run lint` | `✔ No ESLint warnings or errors` |
-| `npm run build` | production build succeeded, 50+ routes |
-| `npm audit --omit=dev --audit-level=moderate` | **0 vulnerabilities** (postcss override + zod upgrade) |
-| `npm run db:setup`, `backup`, `verify:backup`, `restore` (dry run), `check:links`, `check:health`, `export:catalogue` | all succeeded; outputs in `TEST_RESULTS.md` |
-| Runtime smoke | 24 public/system URLs + 18 authenticated admin pages + preview page; expected 307/404 behaviours confirmed |
-| Server actions | CSRF + RBAC + service + audit + redirect verified over real HTTP for draft generation and publication rejection; full login flow verified (303 → `/admin`, httpOnly Secure session cookie, admin pages 200) |
+| `npm run build` | production build succeeded, **51 route entries** (50 dynamic + 1 static), middleware 34.9 kB |
+| `npm audit --omit=dev --audit-level=moderate` | **0 vulnerabilities** (postcss override + zod upgrade; `sharp` added for derivatives) |
+| `npm run db:setup`, `jobs:tick`, `media:derivatives`, `backup`, `verify:backup`, `restore` (dry run), `check:links`, `check:health`, `export:catalogue` | all succeeded; outputs in `TEST_RESULTS.md` |
+| Runtime smoke | **29 public/system URLs + 17 authenticated admin pages** HTTP 200; anonymous `/admin` 307; unpublished demo product 404; dynamic order routes 404 as expected without fabricated orders; CSP nonce present in HTML; HSTS with forwarded HTTPS |
+| Server actions | CSRF + RBAC + service + audit + redirect verified over real HTTP for draft generation and publication rejection; full login flow verified (303 → `/admin`, `dit_session` + `dit_csrf` cookies, admin pages 200) |
 
 ---
 
@@ -66,9 +87,9 @@ A **real, integrated enterprise application** was built, compiled and run — no
 2. **Browser-verified media experiences** — the viewers are implemented and compiled, but no real licensed asset exists to exercise WebGL rendering, 360° gestures, video playback, zoom/fullscreen or the image lightbox in a browser. These are reported as *Partially implemented*, not as verified.
 3. **Exploded/component 3D view for desktops** — not implemented; would require verified product-specific 3D assets. A generic model was deliberately not substituted.
 4. **External integrations** — no payment gateway, SMTP, Facebook/Instagram/YouTube/WhatsApp, Search Console, Analytics, AI provider or off-site backup storage is connected. Social jobs fail explicitly and are recorded; no post is ever reported published without a platform response.
-5. **Production infrastructure** — no domain registration, DNS, TLS, hosting, CSP/HSTS/WAF, scheduled jobs or off-site backup target. A `Caddyfile` template is provided.
+5. **Production infrastructure** — no domain registration, DNS, real TLS/hosting, WAF, production cron/systemd deployment or off-site backup target. The app now emits nonce CSP/HSTS headers and has an internal + CLI scheduler, but those still need verification behind the real proxy. `Caddyfile`, `Dockerfile`, `docker-compose.yml` and CI config are provided; the container image was **not built** here.
 6. **Production database port** — local runtime uses Node's built-in SQLite (experimental in Node 22) and is single-node. A Postgres/Supabase migration path is documented but not implemented.
-7. **Automated browser/E2E suite, load test, penetration test, off-site restore rehearsal** — not executed.
+7. **Automated browser/E2E suite, load test, penetration test, container build/run, off-site restore rehearsal** — not executed. The CSP was verified at HTTP-header level and with unit tests, not in a real browser.
 8. **Owner-approved business facts** — delivery SLAs/charges, return windows, opening hours, legal text, employee/HR data, supplier contracts, operating expenses (required before net profit can be shown). Policy pages are clearly marked as frameworks pending owner approval.
 
 ---
@@ -94,11 +115,11 @@ A **real, integrated enterprise application** was built, compiled and run — no
 
 ## 5. Honest status summary (specification vocabulary)
 
-- **Implemented and verified:** architecture/data models, auth/RBAC/security controls, catalogue rule engine and 15-model validation, publication gate, product-detail template, media administration, product pages, public website, inventory/oversell prevention, pricing/price floor, procurement, order state machine and payment gate, HR/commission, CRM, SEO automation, AI content template path, Super Admin dashboard, backups/health/monitoring, tests/typecheck/lint/build/audit, documentation.
-- **Implemented but not verified:** POS end-to-end sale with a real published product; social publishing against real platform APIs; deployment to a real host.
-- **Partially implemented:** 3D/360°/video browser experiences (code complete, real assets and browser verification missing), media-completeness automation details (indicator present; automated derivative generation/compression not implemented), testing & acceptance coverage (no browser E2E/load/pentest).
+- **Implemented and verified:** architecture/data models (77 tables), auth/RBAC/security controls, nonce CSP/HSTS response headers, catalogue rule engine and 15-model validation, publication gate, product-detail template, media administration, WebP derivative generation from a synthetic non-product fixture, DB-locked scheduler + run ledger, backups admin page, product pages, public website, inventory/oversell prevention, pricing/price floor, procurement, order state machine and payment gate, HR/commission, CRM, SEO automation, AI content template path, Super Admin dashboard, backups/health/monitoring, tests/typecheck/lint/build/audit, documentation.
+- **Implemented but not verified:** POS end-to-end sale with a real published product; social publishing against real platform APIs; deployment to a real host; `Dockerfile`/Compose image build; GitHub Actions CI run on the remote runner; production cron/systemd scheduling.
+- **Partially implemented:** 3D/360°/video browser experiences (code complete, real licensed assets and browser verification missing); derivative pipeline with real licensed product media; testing & acceptance coverage (28 automated tests and HTTP smoke executed, but no browser E2E/load/pentest).
 - **Blocked by an external dependency:** all 15-verified-model catalogue targets, licensed media, external API integrations, domain registration, Search Console/Analytics, AI provider rewording, off-site backups, real inventory/prices/warranties.
-- **Not implemented:** desktop exploded/component 3D view, Postgres/Supabase production port, CSP/HSTS/WAF, scheduled job runner, image derivative pipeline, container image.
+- **Not implemented:** desktop exploded/component 3D view, Postgres/Supabase production port, WAF/IP allow-list, off-site backup upload, built/tested production container image, production-host restore rehearsal.
 
 **Production launch: NO-GO** until the authorized catalogue data and owner credentials above are supplied. The platform is ready to receive them: import → verify → license media → approve → publish, with the 15-model rule enforced at every step.
 
@@ -114,4 +135,4 @@ A **real, integrated enterprise application** was built, compiled and run — no
 
 ## 7. Where to look
 
-`README.md` (quick start), `TEST_RESULTS.md` (actual outputs), `docs/PRODUCTION_READINESS.md` (per-feature matrix), `docs/OUTSTANDING_DEPENDENCIES.md` (owner items), `docs/API.md` (endpoints & import contract), `docs/ENVIRONMENT.md`, `docs/BACKUP_RESTORE.md`, `docs/SECURITY_REVIEW.md`, `DEPLOYMENT.md`, `DEPLOYMENT_PLAN.md`, `worklog.md`, `db/migrations/001_schema.sql`, `src/lib/core/*` (pure, testable rules), `src/lib/server/*` (DB-backed services).
+`README.md` (quick start), `TEST_RESULTS.md` (actual outputs), `docs/PRODUCTION_READINESS.md` (per-feature matrix), `docs/OUTSTANDING_DEPENDENCIES.md` (owner items), `docs/API.md` (endpoints & import contract), `docs/ENVIRONMENT.md`, `docs/BACKUP_RESTORE.md`, `docs/SECURITY_REVIEW.md`, `docs/SCHEDULER.md`, `DEPLOYMENT.md`, `DEPLOYMENT_PLAN.md`, `worklog.md`, `db/migrations/001_schema.sql` + `002_scheduled_jobs.sql` + `003_media_derivatives.sql`, `Dockerfile`, `docker-compose.yml`, `.github/workflows/ci.yml`, `src/lib/core/*` (pure, testable rules), `src/lib/server/*` (DB-backed services).

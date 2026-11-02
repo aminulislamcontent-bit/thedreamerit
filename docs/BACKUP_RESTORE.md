@@ -57,10 +57,11 @@ Actual dry-run result: `Restore validation passed: { integrity: 'ok', categories
 
 - Local retention is manual: keep N daily copies in `backups/` (excluded from Git). Automate with cron/systemd timer: `0 2 * * * cd /app && npm run backup && npm run verify:backup -- "$(ls -t backups/app-*.db | head -1)"`.
 - Off-site encrypted storage (`OFFSITE_BACKUP_TARGET`) is **not configured** — an owner-provided destination is required before this can be called a production backup strategy.
-- `/api/health` reports `lastBackup`, `integrity_status`, `restore_tested_at`, open failed jobs and integration status.
+- `/api/health` reports `lastBackup`, `integrity_status`, `restore_tested_at`, open failed jobs, integration status and `scheduler` state.
+- The `backup_freshness_check` scheduled job logs a warning when no verified backup exists in the last 24 h; it does not create an off-site copy or claim one was tested.
 - Failed backup/verification attempts are written to `app_logs` and `failed_jobs`.
 - Deployment rollback: stop app → restore verified backup with `--apply` → redeploy the previous build/commit → verify `/api/health` and a few critical pages.
 
 ## Postgres / Supabase note
 
-The local runtime uses Node's built-in SQLite. For production Postgres, port `db/migrations/001_schema.sql` (types such as `INTEGER PRIMARY KEY` → `GENERATED ALWAYS AS IDENTITY`, `INSERT OR IGNORE` → `ON CONFLICT DO NOTHING`, `PRAGMA` → `pg_dump`/`pg_restore`, `strftime` → `to_char`). Backups would then use `pg_dump` + checksum + `pg_restore` into a scratch database. This porting work is **not implemented** and requires the owner's database decision/credentials.
+The local runtime uses Node's built-in SQLite. For production Postgres, port all three migrations in `db/migrations/` (types such as `INTEGER PRIMARY KEY` → `GENERATED ALWAYS AS IDENTITY`, `INSERT OR IGNORE` → `ON CONFLICT DO NOTHING`, `PRAGMA` → `pg_dump`/`pg_restore`, `strftime` → `to_char`). Backups would then use `pg_dump` + checksum + `pg_restore` into a scratch database. This porting work is **not implemented** and requires the owner's database decision/credentials.

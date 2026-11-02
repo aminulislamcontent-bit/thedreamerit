@@ -5,6 +5,7 @@ import { totpProvisioningUri } from '@/lib/core/totp';
 import { changePasswordAction, disableMfaAction, setupMfaAction } from '@/app/actions/auth';
 import { CsrfInput } from '@/components/csrf-input';
 import { Badge, Card, Notice, PageHead, PageNotices, Table, Stat } from '@/components/ui';
+import { schedulerStatus } from '@/lib/server/jobs';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,11 +20,20 @@ export default async function SecurityPage({ searchParams }: { searchParams: Pro
   const permissions = all<{ slug: string }>('SELECT slug FROM permissions ORDER BY slug');
   const rateHits = all<{ bucket: string; subject: string; created_at: string }>('SELECT * FROM rate_limit_hits ORDER BY created_at DESC LIMIT 20');
   const logs = all<{ level: string; message: string; created_at: string }>('SELECT * FROM app_logs ORDER BY created_at DESC LIMIT 20');
+  const scheduler = schedulerStatus();
   return (
     <>
       <PageNotices searchParams={sp} />
       <PageHead title="নিরাপত্তা, অনুমতি ও অডিট" subtitle="Secure authentication, scrypt পাসওয়ার্ড হ্যাশিং, RBAC, সার্ভার-সাইড permission checks, সেশন সুরক্ষা, হার-সীমা, ইনপুট ভ্যালিডেশন, সিকিউর আপলোড, অডিট লগ ও ঐচ্ছিক TOTP MFA।" />
       <div className="grid grid-4"><Stat label="অডিট ইভেন্ট" value={audit.length} hint="সর্বশেষ ৬০" /><Stat label="ভূমিকা" value={roles.length} /><Stat label="অনুমতি" value={permissions.length} /><Stat label="সেশন" value={sessions.length} /></div>
+      <Card style={{ marginTop: 18 }}>
+        <h2>রক্ষণাবেক্ষণ সcheduler</h2>
+        <p className="muted">অভ্যন্তরীণ রানার: {scheduler.internalEnabled ? 'সক্রিয়' : 'নিষ্ক্রিয়'} · টিক: {Math.round(scheduler.intervalMs / 1000)}s · সর্বশেষ রান: {scheduler.lastRun?.status ?? 'none'} · খোলা failed jobs: {scheduler.openFailedJobs}</p>
+        <Table headers={['Job', 'ব্যবধান', 'সর্বশেষ', 'পরবর্তী', 'অবস্থা']}>
+          {scheduler.jobs.map((j) => <tr key={j.name}><td><code>{j.name}</code></td><td>{j.interval_minutes} min</td><td className="muted">{j.last_run_at ?? '—'}</td><td className="muted">{j.next_run_at}</td><td>{j.enabled ? <Badge tone="ok">enabled</Badge> : <Badge tone="warn">disabled</Badge>}</td></tr>)}
+        </Table>
+        <p className="muted" style={{ fontSize: '.8rem' }}>প্রতিটি due job <code>BEGIN IMMEDIATE</code> ট্রানজাকশনে claim করা হয়; ব্যর্থতা <code>scheduled_job_runs</code> ও অ্যাপ লগে রেকর্ড হয়।</p>
+      </Card>
       <div className="grid grid-2" style={{ marginTop: 18 }}>
         <Card><h2>আপনার অ্যাকাউন্ট</h2><p className="muted">{user?.email} · ভূমিকা: {user?.roles.join(', ')} · MFA: {user?.mfaEnabled ? 'সক্রিয়' : 'নিষ্ক্রিয়'} · অনুমতি {user?.permissions.length}</p>
           {uri ? <><Notice tone="warn">MFA provisioning URI (শুধুমাত্র আপনার অ্যাকাউন্টের জন্য দেখানো হচ্ছে):</Notice><pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{uri}</pre></> : <p className="muted">MFA সক্রিয় নেই। নিচের বোতামে TOTP সিক্রেট তৈরি করুন; পরবর্তী লগইন থেকে ৬-সংখ্যার কোড প্রয়োজন হবে।</p>}

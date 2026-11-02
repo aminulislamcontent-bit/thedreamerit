@@ -1,0 +1,15 @@
+.git
+.github
+node_modules
+.next
+data/*
+uploads/*
+backups
+.env
+.env.*
+*.log
+coverage
+dist
+out
+build
+.DS_Store

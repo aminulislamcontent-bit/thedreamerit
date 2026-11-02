@@ -1,6 +1,6 @@
 # Test & verification results
 
-Recorded on **2026-11-02** (Asia/Dhaka) in this sandbox. All commands were actually executed; unexecuted checks are listed explicitly in the "Not executed" section.
+Recorded on **2026-11-02** (Asia/Dhaka) in this sandbox. All commands were actually executed; unexecuted checks are listed explicitly in the "Not executed" section. Sections 1–7 preserve the initial handover run; **section 8 records the continuation run** after the scheduler, CSP, derivative, backups-page and container/CI additions.
 
 ## 1. Automated unit + integration tests
 
@@ -108,3 +108,54 @@ Reusing that session token returned HTTP 200 for `/admin`, `/admin/catalogue` an
 - No `--apply` production restore was performed (only a validated scratch restore).
 - No domain registration, DNS change, deployment to a server, or load/performance testing was performed.
 - No real product model, specification, price, stock figure, warranty term or customer review was created or verified against a manufacturer source; the live catalogue is intentionally empty.
+- No container image was built/run and no remote CI result was observed during this initial handover run; see section 8 for the later configuration and local checks.
+- No browser-based CSP enforcement/DAST run was performed; the later header-level verification is recorded in section 8.
+
+## 8. Continuation verification (after initial handover)
+
+The local Git metadata was realigned to the remote branch commit `14b96f8` without changing the working tree. `main` was found to contain a separate 221-file Next.js 16 / Prisma project (`4a90c8b`, author `alaminiubateee969-cmd`), so PR #1 is `CONFLICTING` / `DIRTY`; no codebase was overwritten.
+
+### Commands actually executed
+
+| Command | Result |
+| --- | --- |
+| `npm test` | `1..28`, `# tests 28`, `# pass 28`, `# fail 0` |
+| `npm run typecheck` | exit 0, no diagnostics |
+| `npm run lint` | `✔ No ESLint warnings or errors` |
+| `npm run build` | `✓ Compiled successfully`; 51 route entries (50 dynamic + 1 static); `ƒ Middleware 34.9 kB` |
+| `npm audit --omit=dev --audit-level=moderate` | `found 0 vulnerabilities` |
+| `npm run db:setup` | migrations applied: `001_schema.sql, 002_scheduled_jobs.sql, 003_media_derivatives.sql`; 105 categories, 3 demo products, 0 live published, 1 user |
+| `npm run jobs:tick` | `due: 6`, `ran: 6`, `failed: []`; first-tick registration/claim fixed and retested |
+| `npm run media:derivatives` | live DB: `processed: 0, created: 0, skipped: 0, errors: []` — no approved licensed product image exists |
+| `npm run check:health` | `status: ok`, `database: reachable`, `openFailedJobs: 0`, scheduler object with 6 jobs and a succeeded `lastRun` |
+| `npm run check:links` | `Checked 3 canonical paths; 0 unresolved internal links` |
+| `npm run export:catalogue` | `Exported 3 catalogue records to data/catalogue-export.csv` |
+| `npm run backup` | `backups/app-2026-11-02T15-40-39-946Z.db`, SHA-256 `f6ad787b926d48438f0c8275c52d7e5c6c00804eb3612e87cbc790e2583235f9`, 626688 bytes |
+| `npm run verify:backup -- backups/app-2026-11-02T15-40-39-946Z.db` | `checksum matches, integrity_check=ok, 77 tables restored into a scratch database` |
+| `npm run restore -- backups/app-2026-11-02T15-40-39-946Z.db` | `Restore validation passed` (dry run only; `--apply` not executed) |
+
+### New automated tests
+
+- `tests/security-headers.test.ts` (2): nonce CSP contains the generated nonce and `strict-dynamic`, never falls back to script `unsafe-inline`, allows local `img`/`media`/`worker` sources, and HSTS is sent only for HTTPS.
+- `tests/jobs.test.ts` (1): first tick registers and claims 6 due jobs, cleans expired sessions and old rate-limit hits, does not re-run them immediately, and repeats cleanup on a forced due time.
+- `tests/derivatives.test.ts` (1): a generated solid-colour **non-product** fixture produces three deterministic WebP derivatives with matching SHA-256 checks; a second run creates 0 and skips 3.
+
+### Production-runtime smoke (rebuilt app, port 3000, `0.0.0.0`)
+
+- `GET /` → 200. `Content-Security-Policy` present with a per-request nonce; the same nonce appears in the rendered HTML and its script/link tags. `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`, `X-Content-Type-Options`, COOP and CORP present.
+- Plain HTTP → no HSTS. `X-Forwarded-Proto: https` → `Strict-Transport-Security: max-age=31536000`.
+- Anonymous `/admin` → `307 /login?next=/admin`.
+- Full `useActionState` login with rendered hidden fields → `303 /admin`, `Set-Cookie: dit_session` and `dit_csrf`; 17 authenticated admin pages (including the new `/admin/backups`) → HTTP 200 with CSP on all.
+- 29 public/system URLs → HTTP 200. Unpublished demo product → 404. `/account/orders/1` and `/admin/orders/1` → 404 because no order was fabricated (correct empty-state behaviour, not a failure).
+- `/api/health` → `status: ok`, `database: reachable`, `openFailedJobs: 0`, `scheduler.internalEnabled: true`, 6 jobs, `lastRun.status: succeeded`. With 6 jobs forcibly set due before startup, the in-process `src/instrumentation.ts` hook executed them and recorded a fresh succeeded run.
+- Process log contained only `✓ Ready` plus the expected Node 22 `SQLite is an experimental feature` warning.
+
+### Added to "not executed / not claimed"
+
+- Docker is not installed in the sandbox: `Dockerfile`, `.dockerignore` and `docker-compose.yml` were **not built or run**.
+- The GitHub Actions workflow in `.github/workflows/ci.yml` is committed but its remote run was not observed at the time of this local report.
+- No browser E2E/DAST run verified CSP enforcement or WebGL/360°/video interactions with real licensed assets; no production cron/systemd timer, WAF, off-site backup upload or production-host restore rehearsal was executed.
+
+### Secret hygiene
+
+A repeat scan over `src/`, `scripts/`, `db/`, `docs/`, `tests/`, `.github/` and the top-level config/report files found **2 obvious-pattern hits**, both intentional non-secret placeholders: `APP_SECRET=replace-with-a-random-32-byte-hex-string` in `.env.example` and `APP_SECRET: ci-only-placeholder-not-used-for-authentication` in the CI workflow. No private key, API token, database credential, payment/social secret or real password was committed. `git diff --check` is clean.

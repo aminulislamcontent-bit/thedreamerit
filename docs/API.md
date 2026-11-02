@@ -4,11 +4,11 @@
 
 | Method | Path | Auth | Purpose |
 | --- | --- | --- | --- |
-| GET | `/api/health` | public | Health JSON: DB reachability, open failed jobs, last backup, integration status |
+| GET | `/api/health` | public | Health JSON: DB reachability, open failed jobs, last backup, integration status, and `scheduler` job/last-run state |
 | POST | `/api/cart` | public, rate limited (60/min/IP) | `{productId, quantity}` — adds only published products with a verified price and real stock |
 | POST | `/api/wishlist` | session | `{productId}` — saves to the signed-in user's wishlist |
 | POST | `/api/logout` | session | Revokes the session, clears cookies, 303 → `/` |
-| GET | `/media/[file]` | public only when the media record is `approved` + permission `granted`; otherwise `media.view` permission | Serves uploaded product media with strict filename validation and `nosniff` |
+| GET | `/media/[file]` | public only when the original media record is `approved` + permission `granted`; otherwise `media.view` permission | Serves uploaded product media and generated WebP derivatives with strict filename validation and `nosniff`; a derivative inherits its original record's approval |
 | GET | `/sitemap.xml` | public | Static paths + published & indexable products only |
 | GET | `/robots.txt` | public | Disallows `/admin/`, `/account/`, `/api/`; advertises sitemap |
 
