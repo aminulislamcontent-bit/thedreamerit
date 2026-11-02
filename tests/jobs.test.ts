@@ -4,11 +4,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const testDb = path.join(process.cwd(), 'data', `jobs-${process.pid}.db`);
+const priorSchedulerEnv = process.env.ENABLE_INTERNAL_SCHEDULER;
 process.env.DATABASE_PATH = testDb;
+// Make the status assertion deterministic even when CI disables the in-process runner.
+process.env.ENABLE_INTERNAL_SCHEDULER = '1';
 
 test.after(() => {
   for (const suffix of ['', '-shm', '-wal']) fs.rmSync(`${testDb}${suffix}`, { force: true });
   fs.rmSync(`${testDb}.credentials.txt`, { force: true });
+  if (priorSchedulerEnv === undefined) delete process.env.ENABLE_INTERNAL_SCHEDULER;
+  else process.env.ENABLE_INTERNAL_SCHEDULER = priorSchedulerEnv;
 });
 
 test('scheduler claims each due job once and performs real maintenance', async () => {
@@ -38,6 +43,11 @@ test('scheduler claims each due job once and performs real maintenance', async (
   assert.ok(status.jobs.length >= 6);
   assert.equal(status.internalEnabled, true);
   assert.equal(status.lastRun?.status, 'succeeded');
+
+  process.env.ENABLE_INTERNAL_SCHEDULER = '0';
+  const disabledStatus = schedulerStatus();
+  assert.equal(disabledStatus.internalEnabled, false);
+  process.env.ENABLE_INTERNAL_SCHEDULER = '1';
 
   // A forced due time proves cleanup is repeatable and idempotent.
   run("UPDATE scheduled_jobs SET next_run_at = ? WHERE name IN ('expired_session_cleanup','rate_limit_cleanup')", [new Date(Date.now() - 60_000).toISOString()]);
