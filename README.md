@@ -31,21 +31,6 @@
 - **Forms**: React Hook Form + Zod validation
 - **Notifications**: Sonner + custom toast system
 
-## Default Admin Credentials
-
-```
-Email: admin@thedreamerit.com
-Password: Dreamer@2026
-```
-
-**⚠️ Change this password immediately after first login.**
-
-Sample customer for testing:
-```
-Email: customer@example.com
-Password: Customer@2026
-```
-
 ## Implemented Modules
 
 ### Public Storefront

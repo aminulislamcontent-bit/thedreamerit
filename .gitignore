@@ -52,3 +52,20 @@ prompt
 server.log
 # Skills directory
 /skills/
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Dependencies and build output
+node_modules/
+.next/
+out/
+build/
+coverage/
+
+# Local databases and backups
+*.db
+*.sqlite
+*.sqlite3
+/backups/
