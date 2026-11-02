@@ -30,7 +30,7 @@ Status vocabulary (as required by the master specification): **Implemented and v
 | 20 | Database & integrations | Implemented and verified (local DB) | SQLite migrations, indexes, FKs, safe import. Postgres/Supabase port and external APIs are outstanding |
 | 21 | Backups & monitoring | Implemented and verified | Backup creation, SHA-256, integrity_check, scratch restore, health endpoint, failed jobs, logs — all executed |
 | 21b | Off-site backups, retention automation, alert delivery | Partially implemented | Local job-run retention, backup-freshness warnings and `Admin → Backups` are implemented; encrypted off-site upload, production retention policy and external alert delivery still require owner-provided storage/notification credentials |
-| 22 | Testing & acceptance | Partially implemented | 28 automated tests, typecheck, lint, build, audit, CLI checks, login/RBAC/CSP HTTP smoke executed; browser E2E for media viewers, video and checkout flows, load/pentest and container build not executed |
+| 22 | Testing & acceptance | Partially implemented | 28 automated tests, typecheck, lint, build, audit, CLI checks, login/RBAC/CSP HTTP smoke and remote GitHub Actions run `41476959953` executed; browser E2E for media viewers, video and checkout flows, load/pentest and container build not executed |
 | 23 | Implementation order | Implemented and verified | Work followed the specified sequence; independent work continued when external services were unavailable |
 | 24 | Documentation & deliverables | Implemented and verified | Source, 3 schema migrations, public site, 18 admin/ERP pages, product template, media admin, viewers, completeness reporting, modules, API/env/deploy/backup/scheduler docs, container + CI config, test results, security review, dependency list, this report |
 | 25 | Final completion directive | Partially implemented | Real integrated application delivered; catalogue publication intentionally blocked by the no-fabrication rule and missing authorized data. PR #1 also needs a canonical-codebase decision because `main` now contains a separate unrelated project |
@@ -38,7 +38,7 @@ Status vocabulary (as required by the master specification): **Implemented and v
 | 27 | Scheduled maintenance runner | Implemented and verified | 6 DB-locked jobs, run ledger, internal tick + CLI, admin/health status; `npm run jobs:tick` ran 6/6 and unit tests verified cleanup/single-claim. Production cron/systemd not deployed |
 | 28 | Responsive image derivatives | Implemented and verified (synthetic fixture) | Sharp WebP derivatives tested with a generated non-product fixture; real licensed product media unavailable, so no live derivative was published |
 | 29 | Container image | Implemented but not verified | `Dockerfile`, `.dockerignore`, `docker-compose.yml` supplied; Docker unavailable in sandbox, image not built or run |
-| 30 | CI workflow | Implemented but not verified | `.github/workflows/ci.yml` added for tests/typecheck/lint/build/CLI checks/audit; remote GitHub Actions result must be observed after push |
+| 30 | CI workflow | Implemented and verified | `.github/workflows/ci.yml` runs tests/typecheck/lint/build/CLI checks/audit; remote run `41476959953` passed after an env-dependent scheduler test was made deterministic |
 
 ## Domain
 

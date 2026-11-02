@@ -41,9 +41,10 @@ Independent work completed on this branch after the initial handover:
 | DB-locked maintenance scheduler (6 jobs, run ledger, internal + CLI/cron runners, admin/health status) | Implemented and verified | `tests/jobs.test.ts`; `npm run jobs:tick` ran 6/6 jobs; in-process startup hook executed a forced due tick; `Admin → Security` and `/api/health` show real state |
 | Responsive WebP derivative generation for approved, licensed local images, with permission-checking delivery | Implemented and verified with a synthetic fixture | `tests/derivatives.test.ts` generated 3 deterministic derivatives from a generated solid-colour **non-product** fixture; live DB correctly reports 0 sources |
 | Missing `Admin → Backups` page | Implemented and verified | 18 admin pages now exist; 17 renderable without a fabricated order returned HTTP 200 with a valid session |
-| `Dockerfile`, `.dockerignore`, `docker-compose.yml`, GitHub Actions CI workflow | Implemented but not verified | Docker is unavailable in this sandbox, so no image was built; the CI workflow is committed for the remote runner |
+| `Dockerfile`, `.dockerignore`, `docker-compose.yml` | Implemented but not verified | Docker is unavailable in this sandbox, so no image was built |
+| GitHub Actions CI workflow | Implemented and verified | Remote run `41476959953` on push `7c2f959` passed all steps (tests, typecheck, lint, build, CLI checks, audit). First run `41475988697` failed because a scheduler-status test assumed the internal runner was enabled while CI set `ENABLE_INTERNAL_SCHEDULER=0`; the test was made deterministic and the rerun passed |
 
-Updated verification totals: **28 automated tests**, **77 tables**, **18 admin pages**, **51 build route entries (50 dynamic + 1 static)**, **29 public/system URLs HTTP 200**, **17 authenticated admin pages HTTP 200**, full login `303 → /admin`, unpublished demo product `404`, and expected `404` on dynamic order-detail routes because no order was fabricated. Browser E2E with licensed media, a built container image, production cron/systemd and off-site backup upload remain unverified.
+Updated verification totals: **28 automated tests**, **77 tables**, **18 admin pages**, **51 build route entries (50 dynamic + 1 static)**, **29 public/system URLs HTTP 200**, **17 authenticated admin pages HTTP 200**, full login `303 → /admin`, unpublished demo product `404`, and expected `404` on dynamic order-detail routes because no order was fabricated. Remote GitHub Actions run `41476959953` passed. Browser E2E with licensed media, a built container image, production cron/systemd and off-site backup upload remain unverified.
 
 ---
 
@@ -75,6 +76,7 @@ Updated verification totals: **28 automated tests**, **77 tables**, **18 admin p
 | `npm run lint` | `✔ No ESLint warnings or errors` |
 | `npm run build` | production build succeeded, **51 route entries** (50 dynamic + 1 static), middleware 34.9 kB |
 | `npm audit --omit=dev --audit-level=moderate` | **0 vulnerabilities** (postcss override + zod upgrade; `sharp` added for derivatives) |
+| GitHub Actions CI (remote) | run `41476959953` passed all 11 steps after one env-dependent test was fixed |
 | `npm run db:setup`, `jobs:tick`, `media:derivatives`, `backup`, `verify:backup`, `restore` (dry run), `check:links`, `check:health`, `export:catalogue` | all succeeded; outputs in `TEST_RESULTS.md` |
 | Runtime smoke | **29 public/system URLs + 17 authenticated admin pages** HTTP 200; anonymous `/admin` 307; unpublished demo product 404; dynamic order routes 404 as expected without fabricated orders; CSP nonce present in HTML; HSTS with forwarded HTTPS |
 | Server actions | CSRF + RBAC + service + audit + redirect verified over real HTTP for draft generation and publication rejection; full login flow verified (303 → `/admin`, `dit_session` + `dit_csrf` cookies, admin pages 200) |
@@ -116,7 +118,7 @@ Updated verification totals: **28 automated tests**, **77 tables**, **18 admin p
 ## 5. Honest status summary (specification vocabulary)
 
 - **Implemented and verified:** architecture/data models (77 tables), auth/RBAC/security controls, nonce CSP/HSTS response headers, catalogue rule engine and 15-model validation, publication gate, product-detail template, media administration, WebP derivative generation from a synthetic non-product fixture, DB-locked scheduler + run ledger, backups admin page, product pages, public website, inventory/oversell prevention, pricing/price floor, procurement, order state machine and payment gate, HR/commission, CRM, SEO automation, AI content template path, Super Admin dashboard, backups/health/monitoring, tests/typecheck/lint/build/audit, documentation.
-- **Implemented but not verified:** POS end-to-end sale with a real published product; social publishing against real platform APIs; deployment to a real host; `Dockerfile`/Compose image build; GitHub Actions CI run on the remote runner; production cron/systemd scheduling.
+- **Implemented but not verified:** POS end-to-end sale with a real published product; social publishing against real platform APIs; deployment to a real host; `Dockerfile`/Compose image build; production cron/systemd scheduling.
 - **Partially implemented:** 3D/360°/video browser experiences (code complete, real licensed assets and browser verification missing); derivative pipeline with real licensed product media; testing & acceptance coverage (28 automated tests and HTTP smoke executed, but no browser E2E/load/pentest).
 - **Blocked by an external dependency:** all 15-verified-model catalogue targets, licensed media, external API integrations, domain registration, Search Console/Analytics, AI provider rewording, off-site backups, real inventory/prices/warranties.
 - **Not implemented:** desktop exploded/component 3D view, Postgres/Supabase production port, WAF/IP allow-list, off-site backup upload, built/tested production container image, production-host restore rehearsal.

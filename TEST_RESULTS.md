@@ -124,6 +124,7 @@ The local Git metadata was realigned to the remote branch commit `14b96f8` witho
 | `npm run lint` | `✔ No ESLint warnings or errors` |
 | `npm run build` | `✓ Compiled successfully`; 51 route entries (50 dynamic + 1 static); `ƒ Middleware 34.9 kB` |
 | `npm audit --omit=dev --audit-level=moderate` | `found 0 vulnerabilities` |
+| GitHub Actions CI (remote) | first run `41475988697` failed on an env-dependent scheduler assertion; after `7c2f959`, rerun `41476959953` passed all 11 steps |
 | `npm run db:setup` | migrations applied: `001_schema.sql, 002_scheduled_jobs.sql, 003_media_derivatives.sql`; 105 categories, 3 demo products, 0 live published, 1 user |
 | `npm run jobs:tick` | `due: 6`, `ran: 6`, `failed: []`; first-tick registration/claim fixed and retested |
 | `npm run media:derivatives` | live DB: `processed: 0, created: 0, skipped: 0, errors: []` — no approved licensed product image exists |
@@ -153,7 +154,7 @@ The local Git metadata was realigned to the remote branch commit `14b96f8` witho
 ### Added to "not executed / not claimed"
 
 - Docker is not installed in the sandbox: `Dockerfile`, `.dockerignore` and `docker-compose.yml` were **not built or run**.
-- The GitHub Actions workflow in `.github/workflows/ci.yml` is committed but its remote run was not observed at the time of this local report.
+- The GitHub Actions workflow in `.github/workflows/ci.yml` was observed remotely: first run `41475988697` failed because `tests/jobs.test.ts` asserted `internalEnabled === true` while CI sets `ENABLE_INTERNAL_SCHEDULER=0`. The test was made deterministic (it now also verifies the `0` case), commit `7c2f959` was pushed, and rerun `41476959953` **passed all steps** (tests, typecheck, lint, build, CLI verification, audit).
 - No browser E2E/DAST run verified CSP enforcement or WebGL/360°/video interactions with real licensed assets; no production cron/systemd timer, WAF, off-site backup upload or production-host restore rehearsal was executed.
 
 ### Secret hygiene
