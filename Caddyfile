@@ -1,0 +1,20 @@
+# Placeholder configuration. Replace with a domain the owner has verified and registered.
+# This project has NOT registered any domain.
+{
+    email thedreameritexpress@gmail.com
+}
+
+thedreamerit.com, www.thedreamerit.com {
+    encode zstd gzip
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # Tighten the CSP after browser E2E testing of the WebGL/360 viewers.
+        # Content-Security-Policy "default-src 'self'; img-src 'self' data:; ..."
+    }
+    reverse_proxy 127.0.0.1:3000
+    log {
+        output file /var/log/caddy/dreamerit.log
+    }
+}
