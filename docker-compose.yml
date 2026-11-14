@@ -1,0 +1,23 @@
+services:
+  app:
+    build: .
+    image: the-dreamer-it-express:local
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    environment:
+      DATABASE_PATH: /app/data/app.db
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      CATALOGUE_MODE: live
+      ENABLE_INTERNAL_SCHEDULER: "1"
+    volumes:
+      - dreamerit-data:/app/data
+      - dreamerit-uploads:/app/uploads
+      - dreamerit-backups:/app/backups
+    restart: unless-stopped
+
+volumes:
+  dreamerit-data:
+  dreamerit-uploads:
+  dreamerit-backups:

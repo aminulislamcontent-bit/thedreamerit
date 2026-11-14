@@ -1,12 +1,14 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  output: "standalone",
-  /* config options here */
-  typescript: {
-    ignoreBuildErrors: true,
+  reactStrictMode: true,
+  poweredByHeader: false,
+  // Product media is served from the local, permission-checked media route.
+  // No remote image hosts are trusted by default.
+  images: { remotePatterns: [] },
+  experimental: {
+    serverActions: { bodySizeLimit: '12mb' },
   },
-  reactStrictMode: false,
 };
 
 export default nextConfig;

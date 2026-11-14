@@ -1,429 +1,107 @@
-# The Dreamer IT Express - Enterprise Platform
+# The Dreamer IT Express — platform
 
-> Complete enterprise e-commerce, ERP, AI marketing & automation platform built for The Dreamer IT Express, Bangladesh.
+A real, integrated e-commerce + ERP application for **The Dreamer IT Express** (সুবাস্তু আর্কেড, আইসিটি ভবন, লেভেল ১, দোকান নং ১০৪ ও ১০৫, বাংলাদেশ), built to the supplied master build specification.
 
-## Business Identity
+> **Read this first.** This repository contains a working application, database, admin/ERP modules, media viewers, publication gates, tests and deployment configuration. It does **not** contain invented products, prices, stock, warranties, customer reviews, licensed manufacturer media or registered domains. The live catalogue therefore currently has **0 published products** — that is the intended, enforced behaviour, not an unfinished homepage. See [FINAL_REPORT.md](FINAL_REPORT.md) for the exact status of every feature.
 
-| Field | Value |
-|-------|-------|
-| Business Name | The Dreamer IT Express |
-| Address | Subastu Arcade, ICT Bhaban, Level 1, Shop Nos. 104 and 105, Bangladesh |
-| Phone | 01610111688 |
-| Email | thedreameritexpress@gmail.com |
-| Currency | BDT (৳) |
-| Default Language | Bangla (বাংলা) |
-| Timezone | Asia/Dhaka |
-| Primary Market | Bangladesh |
-| Proposed Domain | thedreamerit.com |
-| Alternative Domain | dreamerit.com.bd |
+## Quick start (Node.js ≥ 22.5)
 
-## Tech Stack
-
-- **Framework**: Next.js 16 (App Router) with TypeScript 5
-- **Styling**: Tailwind CSS 4 + shadcn/ui (New York style)
-- **Database**: SQLite via Prisma ORM 6 (migrate to PostgreSQL for production)
-- **Authentication**: Custom session-based auth with scrypt password hashing
-- **3D Rendering**: Three.js for product viewer
-- **AI**: z-ai-web-dev-sdk for content generation
-- **State Management**: Zustand for client state
-- **Data Fetching**: TanStack Query + custom hooks
-- **Charts**: Recharts
-- **Forms**: React Hook Form + Zod validation
-- **Notifications**: Sonner + custom toast system
-
-## Implemented Modules
-
-### Public Storefront
-- ✅ Homepage with hero, categories, featured products, promotional banner
-- ✅ Product catalog with filters (category, price, sort, search)
-- ✅ Product detail page with 3D viewer, image gallery, specs, reviews, warranty info
-- ✅ Shopping cart with server-side persistence
-- ✅ Multi-step checkout with shipping info + payment method selection
-- ✅ Customer registration and login
-- ✅ Order tracking by order number or phone
-- ✅ PC Configurator with real-time compatibility checks
-- ✅ Product comparison (up to 4 products)
-- ✅ Information pages: About, Contact, FAQ, Privacy, Terms, Warranty, Returns, Delivery, Support
-
-### Admin Dashboard (20+ modules)
-- ✅ **Dashboard** - KPIs, recent orders, top products, branch performance, low-stock alerts, system health
-- ✅ **Products** - CRUD, draft→review→approve→publish workflow, price floor enforcement
-- ✅ **Inventory** - Stock levels, adjustments with audit, multi-branch support
-- ✅ **Orders** - List, detail view, status state machine (PENDING→CONFIRMED→...→DELIVERED)
-- ✅ **Suppliers** - CRUD, contact info, balance tracking
-- ✅ **Customers** - List, purchase history
-- ✅ **Employees (HR)** - CRUD, role assignment, branch assignment
-- ✅ **Commissions** - Pending/approved/paid tracking
-- ✅ **Finance** - Revenue, expenses, profit overview (requires accountant validation)
-- ✅ **AI Content Studio** - Generate Bangla/English product descriptions, SEO titles, FAQ, etc.
-- ✅ **SEO Management** - Issue detection, health score, sitemap generation
-- ✅ **Marketing** - Campaign management
-- ✅ **Social Publishing** - Multi-platform scheduling (requires API integration setup)
-- ✅ **Support Tickets** - Customer ticket management
-- ✅ **Notifications** - In-app notification center
-- ✅ **Branches & Warehouses** - Multi-location management
-- ✅ **Stock Transfers** - Branch-to-branch transfers (REQUESTED→DISPATCHED→RECEIVED)
-- ✅ **Reports** - Sales, branch performance, top products
-- ✅ **Audit Log** - Immutable record of all sensitive actions
-- ✅ **System Settings** - Integrations, backups, system health, settings
-
-### POS Terminal
-- ✅ Product search by name/SKU/barcode
-- ✅ Cart management
-- ✅ Customer info capture
-- ✅ Multiple payment methods (Cash, Card, bKash, Nagad, Rocket, Bank Transfer)
-- ✅ Branch selection
-- ✅ Order creation with stock validation
-
-### 3D Product Viewer
-- ✅ Three.js WebGL rendering
-- ✅ GLB/glTF model support
-- ✅ OrbitControls (drag to rotate, scroll to zoom, touch-friendly)
-- ✅ Image gallery fallback when no 3D model
-- ✅ Fullscreen mode
-- ✅ Loading states and error handling
-- ✅ Graceful fallback on model load failure
-
-### PC Configurator
-- ✅ 8 component slots (CPU, Motherboard, RAM, GPU, Storage, PSU, Case, Cooler)
-- ✅ Real-time compatibility checks:
-  - CPU socket vs Motherboard socket
-  - Motherboard RAM type vs RAM type
-  - PSU wattage vs estimated system draw
-  - Case GPU length vs GPU length
-- ✅ Total price calculation
-- ✅ Add full build to cart
-
-### Security & Compliance
-- ✅ Scrypt password hashing (salt + 64-byte key, N=16384)
-- ✅ Session tokens (32-byte random, 8-hour expiry)
-- ✅ HTTP-only, Secure, SameSite cookies
-- ✅ Account lockout after 5 failed logins
-- ✅ Role-based access control (15 roles, 50+ permissions)
-- ✅ Server-side permission enforcement on every API
-- ✅ Audit logging for all sensitive actions
-- ✅ Input validation (Zod, server-side)
-- ✅ Price floor enforcement (cannot sell below minimum)
-- ✅ State machine for order transitions
-- ✅ SQL injection protection (Prisma parameterized queries)
-- ✅ Decimal-safe monetary calculations
-
-### Database
-- ✅ 35+ normalized entities
-- ✅ Foreign key constraints
-- ✅ Composite unique constraints (e.g., product+branch inventory)
-- ✅ Indexed fields for performance
-- ✅ Migration via Prisma
-
-## Production Deployment
-
-### Prerequisites
-1. Domain registration: `thedreamerit.com` or `dreamerit.com.bd` (verify availability at a registrar like Namecheap, GoDaddy BD, or Hostinger)
-2. Hosting: Vercel (recommended for Next.js) or VPS with Node.js 20+
-3. Database: PostgreSQL 15+ (for production; SQLite for dev)
-4. SSL certificate (Let's Encrypt free, or via Vercel/hosting)
-5. Email service (Resend, SendGrid, or AWS SES)
-6. WhatsApp Business API account (Meta Business)
-7. Social media business accounts (Facebook Page, Instagram Business, YouTube)
-8. Payment gateway: bKash Merchant, Nagad Merchant, SSL Commerz for cards
-
-### Environment Variables
-Copy `.env.example` to `.env` and fill in:
-```env
-DATABASE_URL="postgresql://user:pass@localhost:5432/dreamer_it"
-NEXT_PUBLIC_BASE_URL="https://thedreamerit.com"
-NODE_ENV="production"
-# Add secrets for: payment gateways, email, WhatsApp, social APIs
-```
-
-### Build & Deploy
 ```bash
-# Install dependencies
-bun install
-
-# Generate Prisma client
-bun run db:generate
-
-# Push schema to production DB
-bun run db:push
-
-# Run seed (creates admin, branches, roles, categories)
-bun run scripts/seed.ts
-
-# Build
-bun run build
-
-# Start production
-bun run start
+npm install
+cp .env.example .env.local         # set APP_SECRET and other values
+npm run db:setup                   # apply migrations + seed baseline config
+npm run jobs:tick                  # optional: one maintenance-job tick
+npm run media:derivatives          # optional: approved-image WebP derivatives
+npm run dev                        # http://localhost:3000
 ```
 
-### Post-Deployment Checklist
-- [ ] Change admin password
-- [ ] Configure email service
-- [ ] Configure WhatsApp Business API
-- [ ] Connect Facebook/Instagram APIs (with proper OAuth)
-- [ ] Set up payment gateway credentials
-- [ ] Configure SSL certificate
-- [ ] Set up DNS (A record, MX for email, SPF/DKIM/DMARC)
-- [ ] Submit sitemap to Google Search Console & Bing Webmaster
-- [ ] Schedule automated daily backups (cron job)
-- [ ] Test backup restoration
-- [ ] Configure monitoring (Uptime Robot, Sentry for errors)
-- [ ] Have an accountant validate financial reports before going live
+The database is created automatically at `DATABASE_PATH` (default `./data/app.db`) on first use — no external database service is required for local development. On first seed, a super-admin account is created:
 
-### Database Migration (SQLite → PostgreSQL)
-1. Export SQLite data: `sqlite3 db/custom.db .dump > backup.sql`
-2. Create PostgreSQL database
-3. Update `DATABASE_URL` in `.env`
-4. Run `bun run db:push` to create schema in PostgreSQL
-5. Import data using `psql` or a migration tool
-6. Verify data integrity
+- email: `admin@thedreamerit.local` (override with `BOOTSTRAP_ADMIN_EMAIL`)
+- password: `BOOTSTRAP_ADMIN_PASSWORD`, or a random password written to `data/bootstrap-credentials.txt` (mode 0600, git-ignored)
 
-## Backup Strategy
-- **Daily**: Automated database backup (saved to `/backups/` directory)
-- **Weekly**: Full system backup including uploads
-- **Retention**: 30 days
-- **Verification**: Test restoration monthly
-- **Offsite**: Copy backups to cloud storage (S3, Google Cloud Storage)
+Change that password at **Admin → Security** immediately and enable TOTP MFA there.
 
-To trigger a manual backup:
-- Use the System Settings → Backup section in admin panel
-- Or call: `POST /api/system` with `{"action":"backup"}`
+Production:
 
-## Known Limitations & Outstanding Items
-
-### Implemented but requires external setup
-- **Social media publishing**: Job creation works, but actual publishing requires authorized API credentials (Facebook Graph API, Instagram Graph API, etc.) - must be configured in System Settings → Integrations
-- **WhatsApp messaging**: Integration structure exists, requires Meta Business API account verification
-- **Payment gateway**: Payment method selection exists, actual gateway integration (bKash, Nagad, SSL Commerz) requires merchant account credentials
-- **Email notifications**: API structure exists, requires SMTP/SendGrid/Resend configuration
-
-### Not Implemented
-- **Real-time inventory sync across branches**: Transfer workflow is structured but the dispatch/receive confirmation UI is basic
-- **Customer reviews moderation UI**: Backend exists, admin UI is minimal
-- **Refund processing**: Backend logic exists, no dedicated admin UI
-- **Warranty claims management**: Backend exists, no admin UI
-- **Employee attendance tracking**: Schema exists, no UI
-- **Leave request workflow**: Schema exists, no UI
-- **CSV import for products/suppliers**: Not implemented
-- **Advanced accounting (P&L, Balance Sheet)**: Schema exists, no reports
-- **Loyalty points redemption**: Schema exists, no UI
-- **Coupon redemption at checkout**: Schema exists, no UI
-
-### Verification Status
-- ✅ User registration and login: **Verified**
-- ✅ Product CRUD with approval workflow: **Verified**
-- ✅ Product publication: **Verified**
-- ✅ Cart and checkout: **Verified** (test order placed successfully)
-- ✅ Order creation with stock reservation: **Verified** (inventory correctly decremented)
-- ✅ Admin dashboard with real data: **Verified**
-- ✅ Audit logging: **Verified** (all actions logged)
-- ✅ POS interface: **Implemented** (visible in browser, not fully exercised)
-- ✅ 3D viewer: **Implemented** (Three.js loads, fallback works)
-- ✅ PC configurator with compatibility checks: **Implemented**
-- ⚠️ AI content generation: **Implemented** (uses z-ai-web-dev-sdk, requires SDK availability)
-- ⚠️ Database backup: **Implemented** (works for SQLite file copy)
-- ❌ Production deployment: **Not deployed** (requires hosting + domain)
-
-## File Structure
-
-```
-src/
-├── app/
-│   ├── api/                    # API routes (Next.js Route Handlers)
-│   │   ├── auth/               # Login, logout, session
-│   │   ├── products/           # Products CRUD + approve/publish
-│   │   ├── categories/         # Categories tree
-│   │   ├── brands/             # Brands list
-│   │   ├── cart/               # Shopping cart
-│   │   ├── orders/             # Orders + status updates
-│   │   ├── customers/          # Customer registration
-│   │   ├── track/              # Public order tracking
-│   │   ├── dashboard/          # Admin dashboard metrics
-│   │   ├── inventory/          # Stock levels + adjustments
-│   │   ├── branches/           # Branches CRUD
-│   │   ├── suppliers/          # Suppliers CRUD
-│   │   ├── employees/          # Employees + user accounts
-│   │   ├── commissions/        # Commission tracking
-│   │   ├── content/            # AI content studio
-│   │   ├── seo/                # SEO dashboard + sitemap
-│   │   ├── marketing/          # Campaigns
-│   │   ├── social/             # Social publishing jobs
-│   │   ├── support/            # Support tickets
-│   │   ├── notifications/      # User notifications
-│   │   ├── reviews/            # Product reviews
-│   │   ├── audit/              # Audit log
-│   │   └── system/             # Settings, backups, integrations
-│   ├── globals.css             # Tailwind + custom styles
-│   ├── layout.tsx              # Root layout with metadata
-│   └── page.tsx                # Main app entry (SPA routing)
-├── components/
-│   ├── ui/                     # shadcn/ui components (40+)
-│   ├── storefront/             # Public website components
-│   │   ├── header.tsx
-│   │   ├── footer.tsx
-│   │   ├── home-page.tsx
-│   │   ├── catalog-page.tsx
-│   │   ├── product-detail-page.tsx
-│   │   ├── product-card.tsx
-│   │   ├── cart-page.tsx
-│   │   ├── checkout-page.tsx
-│   │   ├── customer-auth-page.tsx
-│   │   ├── order-success-page.tsx
-│   │   ├── track-order-page.tsx
-│   │   ├── pc-configurator-page.tsx
-│   │   ├── compare-page.tsx
-│   │   └── info-pages.tsx
-│   ├── admin/                  # Admin dashboard modules
-│   │   ├── admin-dashboard.tsx # Shell with sidebar
-│   │   ├── dashboard-module.tsx
-│   │   ├── products-module.tsx
-│   │   ├── inventory-module.tsx
-│   │   ├── orders-module.tsx
-│   │   ├── other-modules.tsx   # 16 modules combined
-│   │   └── *.tsx               # Re-export files
-│   ├── pos/
-│   │   └── pos-terminal.tsx
-│   └── viewer/
-│       └── viewer-3d.tsx       # Three.js 3D viewer
-├── hooks/
-│   ├── use-auth.ts             # Auth state hook
-│   ├── use-api.ts              # API fetcher hooks
-│   ├── use-mobile.ts
-│   └── use-toast.ts
-├── lib/
-│   ├── config.ts               # Business config, roles, permissions
-│   ├── security.ts             # Password hashing, tokens, validation
-│   ├── auth.ts                 # Server-side auth context
-│   ├── audit.ts                # Audit logging
-│   ├── api.ts                  # API response helpers
-│   ├── format.ts               # Money, date, number formatting
-│   ├── store.ts                # Zustand navigation store
-│   ├── db.ts                   # Prisma client
-│   └── utils.ts                # Misc utilities
-└── prisma/
-    └── schema.prisma           # 35+ models, full schema
-
-scripts/
-├── seed.ts                     # Initial data (admin, branches, categories, brands)
-└── sample-data.ts              # Sample products + customer for testing
-
-download/                       # Generated deliverables (screenshots)
-backups/                        # Database backups
+```bash
+npm run build && npm run start -- -p 3000
+curl http://localhost:3000/api/health
 ```
 
-## Security Review
+## What is actually implemented
 
-### Authentication
-- Passwords hashed with scrypt (N=16384, r=8, p=1) + 16-byte salt
-- Sessions stored in DB with 8-hour expiry
-- Session token: 32-byte cryptographically random
-- HTTP-only cookies prevent XSS access
-- SameSite=lax prevents CSRF
-- Account lockout after 5 failed attempts
+| Area | Where |
+| --- | --- |
+| 77-table relational schema, 3 migrations, indexes, FKs, constraints | `db/migrations/*.sql`, `src/lib/server/database.ts` |
+| Authentication, scrypt hashing, sessions, RBAC (8 roles / 35 permissions), CSRF, rate limiting, TOTP MFA, audit log | `src/lib/server/auth.ts`, `src/lib/core/password.ts`, `src/lib/core/totp.ts` |
+| Catalogue rules: 15 distinct verified models per activated category, duplicate/variant handling, publication gate | `src/lib/core/catalogue-rules.ts`, `src/lib/server/catalogue.ts` |
+| Product admin: specs, variants, SKU/barcode, bulk JSON import/export, revisions, archive, price floor & approval, SEO validation | `src/app/(admin)/admin/products/**`, `src/app/actions/catalogue.ts` |
+| Media admin: validated uploads, GLB/glTF, 360° frames, video, provenance, licensing, permission, review, primary/reorder, failed jobs | `src/app/(admin)/admin/media/page.tsx`, `src/app/actions/media.ts`, `src/app/media/[file]/route.ts` |
+| Real Three.js/WebGL 3D viewer and drag/swipe 360° viewer, full-screen, zoom, keyboard/touch, lazy loading, explicit fallback | `src/components/three-viewer.tsx`, `src/components/spin-360-viewer.tsx`, `src/components/product-media-gallery.tsx` |
+| 9-section individual product page with Product/Breadcrumb structured data, canonical, OG, reviews/Q&A empty states, trust & support | `src/app/(site)/products/[slug]/page.tsx` |
+| Public storefront: catalogue, categories, brands, filters/sort/compare/search, cart, checkout, accounts, orders, wishlist, warranty, returns, policies, contact, FAQ | `src/app/(site)/**` |
+| Inventory with `BEGIN IMMEDIATE` transactions (no overselling), branches, warehouses, transfers, receipts, serials, low-stock, valuation | `src/lib/server/inventory.ts`, `src/app/(admin)/admin/inventory/page.tsx` |
+| Procurement, suppliers, purchase orders, invoices, landed cost, outstanding balances | `src/app/(admin)/admin/operations/page.tsx` |
+| POS, order state machine, verified payments, refunds, returns, commissions, cash reconciliation | `src/lib/server/orders.ts`, `src/app/(admin)/admin/pos/**`, `src/app/(admin)/admin/orders/**` |
+| Employees, attendance, shifts, commission rules, payroll exports | `src/app/(admin)/admin/employees/page.tsx` |
+| CRM: customers, leads, tickets, follow-ups, communications, consent, segments, preferences | `src/app/(admin)/admin/crm/page.tsx` |
+| AI Content Studio (Bangla/English), verified-field-only drafts, optional AI provider, no-fabrication check, revision history, human approval | `src/lib/core/content-rules.ts`, `src/lib/server/content.ts`, `src/app/(admin)/admin/content/page.tsx` |
+| SEO automation: sitemap, robots, canonical, metadata validation, duplicate/broken-link checks, redirects | `src/lib/server/seo.ts`, `src/app/(admin)/admin/seo/page.tsx` |
+| Social publishing workflow: approval → submit → **platform confirmation required** before `published` | `src/lib/server/social.ts`, `src/app/(admin)/admin/social/page.tsx` |
+| Super Admin dashboard computed from actual DB records, health endpoint, failed-job monitoring, backups with checksum + tested restore | `src/lib/server/dashboard.ts`, `src/lib/server/monitoring.ts`, `src/lib/server/backup.ts`, `scripts/` |
+| Per-request nonce CSP, HSTS on HTTPS, clickjacking/referrer/permissions headers | `src/lib/core/security-headers.ts`, `src/middleware.ts`, `tests/security-headers.test.ts` |
+| DB-locked maintenance scheduler with 6 jobs, run ledger, internal + CLI runners, admin/health status | `src/lib/server/jobs.ts`, `src/instrumentation.ts`, `scripts/jobs-tick.ts`, `docs/SCHEDULER.md` |
+| Responsive WebP derivatives for approved/licensed local images, served through the permission-checked media route | `src/lib/server/derivatives.ts`, `src/app/media/[file]/route.ts`, `scripts/media-derivatives.ts` |
+| `Admin → Backups` page for backup records, verification, failed jobs and scheduler state | `src/app/(admin)/admin/backups/page.tsx` |
+| Container + CI configuration | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `.github/workflows/ci.yml` |
 
-### Authorization
-- 15 system roles with least-privilege permissions
-- 50+ permission codes grouped by module
-- Server-side enforcement on EVERY API endpoint
-- Branch-level data isolation for branch managers/employees
+## Non-negotiable rules enforced in code
 
-### Data Protection
-- Cost prices, supplier costs hidden from non-authorized users
-- Customer data restricted to CRM roles
-- Salary info restricted to HR managers
-- Audit log records all sensitive actions (immutable)
-- No plaintext passwords stored anywhere
+- **15 verified distinct models per activated category**; demo records, duplicate SKUs/models and variants never count. The catalogue is never reported complete when an activated category is short.
+- **Publication gate**: model verification + source, SKU/MPN, individual page, licensed & reviewed media, category-appropriate verified specs, verified price source (or no price), real inventory record, reviewed SEO fields and recorded human approval — all must pass.
+- **No fabricated facts**: no invented models, specs, prices, stock, warranties, ratings or reviews. Structured data omits price/availability/`aggregateRating` unless verified.
+- **Media honesty**: a static gallery is never called a 3D model or a 360° viewer; a 360° sequence is never called a 3D model; a 3D model is never presented as a generic stand-in for an exact manufacturer product.
+- **Payments**: an order is only `paid` after a verified payment event (or authorized cash reconciliation). Revenue is never reported as profit.
+- **Social posts**: never `published` without a recorded platform response.
 
-### Input Validation
-- Zod schemas for all API inputs
-- Server-side validation always (never trust client)
-- Sanitization for user-supplied strings
-- Email/phone format validation
-- Decimal-safe monetary calculations
+## Verification status (short)
 
-### Known Vulnerabilities Mitigated
-- ✅ SQL Injection: Prisma parameterized queries
-- ✅ XSS: React auto-escaping + HTTP-only cookies
-- ✅ CSRF: SameSite cookies + custom tokens
-- ✅ Broken Access Control: Server-side permission checks
-- ✅ Security Misconfiguration: Environment-based secrets
-- ✅ Sensitive Data Exposure: Encrypted passwords, HTTPS in prod
-- ✅ Insecure File Uploads: Not yet exposed (planned for product images)
+| Check | Result |
+| --- | --- |
+| `npm test` (node:test, 28 tests) | 28 pass, 0 fail |
+| `npm run typecheck` | clean |
+| `npm run lint` | no warnings or errors |
+| `npm run build` | Next.js 15.5.28 production build succeeded, 51 route entries (50 dynamic + 1 static), middleware 34.9 kB |
+| `npm audit --omit=dev` | 0 vulnerabilities |
+| Runtime smoke test | 29 public/system + 17 authenticated admin routes HTTP 200, anonymous `/admin` 307, nonce CSP header + matching HTML nonce, HSTS with forwarded HTTPS, full login 303 → `/admin`, expected 404 for demo/order-detail routes — see `TEST_RESULTS.md` |
+| Scheduler / derivatives | `npm run jobs:tick` ran 6/6 jobs; synthetic non-product fixture generated 3 WebP derivatives |
+| Backup / restore | checksum verified, `PRAGMA integrity_check=ok`, 77 tables restored into a scratch database |
 
-## Testing
+Remote CI run `41477434539` passed. The source conflict with the separate project formerly at `main` was resolved in favour of this verified app at the root; that prior tree remains in Git history and is described in [legacy/README.md](legacy/README.md). Not verified: browser rendering of a real product-specific GLB/glTF asset or 360° image sequence (no licensed product-specific assets exist yet), browser CSP enforcement/DAST, a built container image (Docker unavailable here), and any external platform API behaviour (no owner credentials).
 
-### Manual Test Results
-- ✅ Login as admin → Success
-- ✅ Navigate to admin dashboard → All 20 modules load
-- ✅ Create product → Saved as DRAFT (correct)
-- ✅ Submit for review → Status: PENDING_REVIEW
-- ✅ Approve product → Status: APPROVED
-- ✅ Publish product → Status: PUBLISHED, appears on storefront
-- ✅ Customer registration → Success
-- ✅ Customer login → Success
-- ✅ Add product to cart → Cart updated, server-side persisted
-- ✅ Checkout → Order created, stock reserved (OnHand: 10, Reserved: 1, Available: 9)
-- ✅ Order appears in admin → Status: CONFIRMED (auto-confirmed for POS-style payment)
-- ✅ Audit log entries created for all actions
+## Documentation
 
-### Areas Needing Automated Tests
-- Unit tests for: pricing engine, commission calculation, stock reservation logic
-- Integration tests for: order workflow, inventory adjustments, auth flows
-- E2E tests for: full customer journey, admin workflows, POS transactions
+| File | Purpose |
+| --- | --- |
+| [FINAL_REPORT.md](FINAL_REPORT.md) | Final verification report — every feature, every gap, every owner dependency |
+| [docs/PRODUCTION_READINESS.md](docs/PRODUCTION_READINESS.md) | Per-feature status matrix |
+| [TEST_RESULTS.md](TEST_RESULTS.md) | Actual command output and smoke-test results |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Deployment, reverse proxy, rollback |
+| [DEPLOYMENT_PLAN.md](DEPLOYMENT_PLAN.md) | Phased production plan and owner decisions |
+| [docs/API.md](docs/API.md) | HTTP endpoints, server actions and data-import contract |
+| [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md) | Environment variables and secret handling |
+| [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md) | Backup, integrity, tested restore |
+| [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md) | Security controls and residual risks |
+| [docs/OUTSTANDING_DEPENDENCIES.md](docs/OUTSTANDING_DEPENDENCIES.md) | Everything needing owner credentials or authorized data |
+| [docs/SCHEDULER.md](docs/SCHEDULER.md) | Maintenance jobs, runners and cron examples |
+| [Dockerfile](Dockerfile), [docker-compose.yml](docker-compose.yml), [.github/workflows/ci.yml](.github/workflows/ci.yml) | Container and CI configuration (not built/run in the sandbox) |
+| [worklog.md](worklog.md) | Implementation log |
 
-## Production Readiness Checklist
+## Domain note
 
-| Item | Status |
-|------|--------|
-| Authentication | ✅ Ready |
-| Authorization (RBAC) | ✅ Ready |
-| Product catalog | ✅ Ready |
-| Inventory management | ✅ Ready |
-| Order processing | ✅ Ready |
-| POS terminal | ✅ Ready |
-| Customer accounts | ✅ Ready |
-| Admin dashboard | ✅ Ready |
-| Audit logging | ✅ Ready |
-| Database schema | ✅ Ready (migrate to PostgreSQL for prod) |
-| API security | ✅ Ready |
-| 3D viewer | ✅ Ready (needs real 3D assets) |
-| PC configurator | ✅ Ready |
-| AI content generation | ⚠️ Implemented (requires z-ai SDK availability) |
-| SEO features | ✅ Ready |
-| Social publishing | ⚠️ Requires API integration setup |
-| Payment gateway | ⚠️ Requires merchant account |
-| Email notifications | ⚠️ Requires SMTP config |
-| WhatsApp integration | ⚠️ Requires Meta Business API |
-| Backup system | ✅ Ready (SQLite file copy) |
-| Production deployment | ❌ Pending hosting/domain |
-| SSL certificate | ❌ Pending |
-| DNS configuration | ❌ Pending |
-| Performance testing | ❌ Not done |
-| Load testing | ❌ Not done |
-| Security audit | ❌ Pending (recommend professional audit) |
+Proposed domains: `thedreamerit.com`, `dreamerit.com.bd`. **Neither is registered by this project.** A registrar WHOIS page reported `thedreamerit.com` as unregistered on 2026-11-02, but the page was partly behind a bot check and is not an authoritative registry result; the `.com.bd` zone was not supported by that WHOIS service. Definitive availability checks and registration require the owner.
 
-## Support & Maintenance
+## Outstanding owner dependencies (summary)
 
-### Recommended Ongoing Tasks
-1. **Daily**: Check backup success, review audit log for anomalies
-2. **Weekly**: Review low-stock alerts, process pending product approvals
-3. **Monthly**: Test backup restoration, review SEO issues, update content
-4. **Quarterly**: Security review, dependency updates, performance audit
-
-### When to Contact Professionals
-- **Accountant**: Before going live with financial reports, tax calculations
-- **Lawyer**: For T&C, Privacy Policy, refund policy legal review
-- **Security Auditor**: Penetration testing before launch
-- **DevOps Engineer**: Production deployment, monitoring setup
-
-## License & Ownership
-
-This platform is proprietary software built for The Dreamer IT Express. All rights reserved.
-
----
-
-**Built with ❤️ for The Dreamer IT Express, Bangladesh.**
-
-For questions, contact: thedreameritexpress@gmail.com · 01610111688
-# thedreamerit
+Authorized manufacturer/distributor product data + licensed media (to reach 15 verified models per activated category), domain registration, payment gateway, Facebook/Instagram/YouTube/WhatsApp Business credentials, SMTP, Google Search Console/Analytics, off-site backup storage, AI provider key (optional), and confirmation of which categories/branch stock are real. Full list: [docs/OUTSTANDING_DEPENDENCIES.md](docs/OUTSTANDING_DEPENDENCIES.md).
