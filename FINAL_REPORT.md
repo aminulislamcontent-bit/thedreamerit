@@ -31,7 +31,7 @@ A **real, integrated enterprise application** was built, compiled and run — no
 
 ## 1a. Continuation after the initial handover
 
-The local checkout's Git metadata had been reset to the initial commit while the remote branch still held commit `14b96f8`; it was realigned without changing the working tree. Separately, `main` now contains a **different 221-file Next.js 16 / Prisma project** pushed by `alaminiubateee969-cmd` (`4a90c8b`), with unrelated history and overlapping paths. PR #1 is therefore `CONFLICTING` / `DIRTY`. **Neither codebase was overwritten.** A canonical-codebase decision is required before any merge; see `worklog.md`.
+The local checkout's Git metadata had been reset to the initial commit while the remote branch still held commit `14b96f8`; it was realigned without changing the working tree. `main` also contained a **separate 221-file Next.js 16 / Prisma project** pushed by `alaminiubateee969-cmd` (`4a90c8b`). At the user's repeated instruction to merge PR #1, the conflict was resolved with this branch's verified Next.js 15 app as the active root. A merge commit records both histories as parents; the previous root tree is still retrievable by its commit and documented in [`legacy/README.md`](legacy/README.md). Its 15 MB of screenshots and old demo-password examples were not duplicated into the active tree. The PR conflict is resolved; final merge/check status is recorded in `worklog.md`.
 
 Independent work completed on this branch after the initial handover:
 

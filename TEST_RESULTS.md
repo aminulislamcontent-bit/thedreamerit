@@ -113,7 +113,7 @@ Reusing that session token returned HTTP 200 for `/admin`, `/admin/catalogue` an
 
 ## 8. Continuation verification (after initial handover)
 
-The local Git metadata was realigned to the remote branch commit `14b96f8` without changing the working tree. `main` was found to contain a separate 221-file Next.js 16 / Prisma project (`4a90c8b`, author `alaminiubateee969-cmd`), so PR #1 is `CONFLICTING` / `DIRTY`; no codebase was overwritten.
+The local Git metadata was realigned to the remote branch commit `14b96f8` without changing the working tree. `main` contained a separate 221-file Next.js 16 / Prisma project (`4a90c8b`, author `alaminiubateee969-cmd`). After the user repeated the merge instruction, a merge commit was recorded with both histories as parents while keeping this branch's verified app at the active root. The previous tree remains recoverable via `legacy/README.md`; it was not copied or removed from Git history.
 
 ### Commands actually executed
 

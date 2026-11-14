@@ -47,4 +47,4 @@ Status vocabulary (as required by the master specification): **Implemented and v
 
 ## Go / no-go
 
-**No-go for a live retail launch.** The application, database, admin tools, security controls and verification gates are working, but there are 0 verified products, 0 licensed media assets, 0 activated categories, no domain, no payment gateway and no external platform credentials. PR #1 also requires the owner to decide which of the two conflicting codebases is canonical before merging. Launch requires the owner dependencies in `docs/OUTSTANDING_DEPENDENCIES.md` and the completion of Phase 2 in `DEPLOYMENT_PLAN.md`.
+**No-go for a live retail launch.** The application, database, admin tools, security controls and verification gates are working, but there are 0 verified products, 0 licensed media assets, 0 activated categories, no domain, no payment gateway and no external platform credentials. PR #1's source conflict has been resolved by keeping this branch's app at the root and retaining the prior `main` project in Git history. Launch requires the owner dependencies in `docs/OUTSTANDING_DEPENDENCIES.md` and the completion of Phase 2 in `DEPLOYMENT_PLAN.md`.

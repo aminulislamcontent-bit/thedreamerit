@@ -78,7 +78,7 @@ curl http://localhost:3000/api/health
 | Scheduler / derivatives | `npm run jobs:tick` ran 6/6 jobs; synthetic non-product fixture generated 3 WebP derivatives |
 | Backup / restore | checksum verified, `PRAGMA integrity_check=ok`, 77 tables restored into a scratch database |
 
-Remote CI run `41476959953` passed. Not verified: browser rendering of a real product-specific GLB/glTF asset or 360° image sequence (no licensed product-specific assets exist yet), browser CSP enforcement/DAST, a built container image (Docker unavailable here), and any external platform API behaviour (no owner credentials). PR #1 is currently conflicting with a separate project later pushed to `main`; see `FINAL_REPORT.md` and `worklog.md`.
+Remote CI run `41477434539` passed. The source conflict with the separate project formerly at `main` was resolved in favour of this verified app at the root; that prior tree remains in Git history and is described in [legacy/README.md](legacy/README.md). Not verified: browser rendering of a real product-specific GLB/glTF asset or 360° image sequence (no licensed product-specific assets exist yet), browser CSP enforcement/DAST, a built container image (Docker unavailable here), and any external platform API behaviour (no owner credentials).
 
 ## Documentation
 

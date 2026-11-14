@@ -53,6 +53,6 @@ Social jobs currently fail with an explicit reason and are recorded in `failed_j
 
 Implemented in the continuation: DB-locked scheduled maintenance jobs, internal/external runner options, responsive WebP derivative generation for approved/licensed images, nonce CSP/HSTS response headers, CI workflow and container configuration. Those additions do not supply catalogue data, domains, payment/social credentials or a production database.
 
-## 6. Repository merge decision (owner)
+## 6. Repository merge resolution
 
-`main` now contains a separate 221-file Next.js 16 / Prisma project pushed by `alaminiubateee969-cmd` (`4a90c8b`) with unrelated Git history. This branch contains the no-fabrication, verification-gated implementation. PR #1 is `CONFLICTING` / `DIRTY`. The owner must choose which codebase is canonical, or explicitly approve archiving one under a labelled `legacy/` path, before any merge. No destructive conflict resolution was performed.
+At the user's repeated instruction to merge PR #1, the conflict was resolved by keeping this branch's no-fabrication, verification-gated Next.js 15 app as the active root. A merge commit preserves both histories, including the previous `main` tree at `4a90c8b962c55f857e3395750783c48d6eca4ce4`; `legacy/README.md` explains how to inspect/export it. The previous app is historical, not active, and was not copied into the working tree (avoiding duplicate app code, 15 MB of screenshots and historical demo-password examples). It was not deleted from Git history. PR #1 is being rechecked before the final GitHub merge.
