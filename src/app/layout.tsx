@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { BUSINESS } from '@/lib/core/identity';
+import { Analytics } from '@vercel/analytics/next';
 
 // A fresh nonce CSP requires dynamic rendering; static prerenders cannot carry
 // the per-request nonce that Next.js applies to its inline bootstrap scripts.
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <a className="skip-link" href="#main-content">মূল বিষয়বস্তুতে যান</a>
         {children}
+        <Analytics />
       </body>
     </html>
   );
