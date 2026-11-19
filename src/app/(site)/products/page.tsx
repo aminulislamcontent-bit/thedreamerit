@@ -28,14 +28,14 @@ function ProductCard({ p }: { p: ProductRow }) {
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
   const read = (k: string) => { const v = sp[k]; return Array.isArray(v) ? v[0] : (v ?? ''); };
-  const category = all<{ slug: string; name_en: string }>('SELECT slug, name_en FROM categories ORDER BY sort_order');
-  const brands = all<{ slug: string; name: string }>('SELECT slug, name FROM brands ORDER BY name');
+  const category = await all<{ slug: string; name_en: string }>('SELECT slug, name_en FROM categories ORDER BY sort_order');
+  const brands = await all<{ slug: string; name: string }>('SELECT slug, name FROM brands ORDER BY name');
   const sort = read('sort');
-  let products = listProducts({ status: 'published', categorySlug: read('category') || undefined, brandSlug: read('brand') || undefined, search: read('q') || undefined });
+  let products = await listProducts({ status: 'published', categorySlug: read('category') || undefined, brandSlug: read('brand') || undefined, search: read('q') || undefined });
   if (sort === 'name') products = [...products].sort((a, b) => a.model_name.localeCompare(b.model_name));
   if (sort === 'price_asc') products = [...products].sort((a, b) => (a.price_amount ?? Infinity) - (b.price_amount ?? Infinity));
   if (sort === 'price_desc') products = [...products].sort((a, b) => (b.price_amount ?? -1) - (a.price_amount ?? -1));
-  const demo = read('demo') === '1' ? listProducts({ includeDemo: true }).filter((p) => p.is_demo) : [];
+  const demo = read('demo') === '1' ? await (await listProducts({ includeDemo: true })).filter((p) => p.is_demo) : [];
 
   return (
     <>

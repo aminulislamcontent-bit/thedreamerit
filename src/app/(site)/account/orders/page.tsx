@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export default async function OrdersPage() {
   const user = await getCurrentUser();
   if (!user) redirect('/login?next=/account/orders');
-  const orders = all<{ id: number; order_number: string; status: string; total_amount: number; created_at: string; channel: string }>(
+  const orders = await all<{ id: number; order_number: string; status: string; total_amount: number; created_at: string; channel: string }>(
     'SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [user.id]);
   return (
     <>

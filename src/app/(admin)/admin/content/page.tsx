@@ -10,10 +10,10 @@ export const dynamic = 'force-dynamic';
 
 export default async function ContentStudioPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
-  const products = all<{ id: number; model_name: string }>('SELECT id, model_name FROM products ORDER BY model_name');
-  const drafts = listDrafts();
-  const revisions = all<{ id: number; draft_id: number; created_at: string }>('SELECT * FROM content_revisions ORDER BY id DESC LIMIT 20');
-  const selected = products[0] ? buildVerifiedBundle(products[0].id) : null;
+  const products = await all<{ id: number; model_name: string }>('SELECT id, model_name FROM products ORDER BY model_name');
+  const drafts = await listDrafts();
+  const revisions = await all<{ id: number; draft_id: number; created_at: string }>('SELECT * FROM content_revisions ORDER BY id DESC LIMIT 20');
+  const selected = products[0] ? await buildVerifiedBundle(products[0].id) : null;
   return (
     <>
       <PageNotices searchParams={sp} />

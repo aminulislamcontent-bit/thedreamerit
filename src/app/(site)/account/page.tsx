@@ -11,8 +11,8 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   const sp = await searchParams;
   const user = await getCurrentUser();
   if (!user) redirect('/login?next=/account');
-  const customer = get<{ id: number; name: string; phone: string; consent_marketing: number }>('SELECT * FROM customers WHERE user_id = ?', [user.id]);
-  const orders = all<{ id: number; order_number: string; status: string; total_amount: number; created_at: string }>('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [user.id]);
+  const customer = await get<{ id: number; name: string; phone: string; consent_marketing: number }>('SELECT * FROM customers WHERE user_id = ?', [user.id]);
+  const orders = await all<{ id: number; order_number: string; status: string; total_amount: number; created_at: string }>('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [user.id]);
   return (
     <>
       <Crumbs items={[{ label: 'হোম', href: '/' }, { label: 'আমার অ্যাকাউন্ট' }]} />

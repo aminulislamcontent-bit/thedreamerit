@@ -8,13 +8,13 @@ export const dynamic = 'force-dynamic';
 
 export default async function OperationsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
-  const branches = all<{ id: number; code: string; name: string; address: string; phone: string }>('SELECT * FROM branches ORDER BY id');
-  const warehouses = all<{ id: number; code: string; name: string; branch_id: number }>('SELECT * FROM warehouses ORDER BY id');
-  const suppliers = all<{ id: number; name: string; phone: string; status: string }>('SELECT * FROM suppliers ORDER BY id');
-  const pos = all<{ id: number; po_number: string; status: string; created_at: string }>('SELECT * FROM purchase_orders ORDER BY created_at DESC');
-  const invoices = all<{ id: number; invoice_number: string; amount: number; paid_amount: number; status: string }>('SELECT * FROM supplier_invoices ORDER BY id DESC');
-  const products = all<{ id: number; model_name: string }>('SELECT id, model_name FROM products ORDER BY model_name');
-  const valuation = all<{ product_name: string; units: number; cost: number }>(`SELECT p.model_name AS product_name, SUM(ib.on_hand) AS units, SUM(ib.on_hand * COALESCE((SELECT MAX(unit_cost) FROM purchase_order_items poi WHERE poi.product_id = ib.product_id),0)) AS cost FROM inventory_balances ib JOIN products p ON p.id = ib.product_id GROUP BY p.id`);
+  const branches = await all<{ id: number; code: string; name: string; address: string; phone: string }>('SELECT * FROM branches ORDER BY id');
+  const warehouses = await all<{ id: number; code: string; name: string; branch_id: number }>('SELECT * FROM warehouses ORDER BY id');
+  const suppliers = await all<{ id: number; name: string; phone: string; status: string }>('SELECT * FROM suppliers ORDER BY id');
+  const pos = await all<{ id: number; po_number: string; status: string; created_at: string }>('SELECT * FROM purchase_orders ORDER BY created_at DESC');
+  const invoices = await all<{ id: number; invoice_number: string; amount: number; paid_amount: number; status: string }>('SELECT * FROM supplier_invoices ORDER BY id DESC');
+  const products = await all<{ id: number; model_name: string }>('SELECT id, model_name FROM products ORDER BY model_name');
+  const valuation = await all<{ product_name: string; units: number; cost: number }>(`SELECT p.model_name AS product_name, SUM(ib.on_hand) AS units, SUM(ib.on_hand * COALESCE((SELECT MAX(unit_cost) FROM purchase_order_items poi WHERE poi.product_id = ib.product_id),0)) AS cost FROM inventory_balances ib JOIN products p ON p.id = ib.product_id GROUP BY p.id`);
   return (
     <>
       <PageNotices searchParams={sp} />

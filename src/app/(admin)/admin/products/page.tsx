@@ -9,9 +9,9 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminProductsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
-  const categories = all<{ id: number; name_en: string }>('SELECT id, name_en FROM categories ORDER BY sort_order');
-  const brands = all<{ id: number; name: string }>('SELECT id, name FROM brands ORDER BY name');
-  const products = listProducts({ includeDemo: true, limit: 300 });
+  const categories = await all<{ id: number; name_en: string }>('SELECT id, name_en FROM categories ORDER BY sort_order');
+  const brands = await all<{ id: number; name: string }>('SELECT id, name FROM brands ORDER BY name');
+  const products = await listProducts({ includeDemo: true, limit: 300 });
   return (
     <>
       <PageNotices searchParams={sp} />

@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function CatalogueProgressPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
-  const progress = getCategoryProgress();
+  const progress = await getCategoryProgress();
   const active = progress.filter((p) => p.active);
   const complete = catalogueIsComplete(progress);
   const totalMissing = active.reduce((sum, p) => sum + p.missingModels, 0);

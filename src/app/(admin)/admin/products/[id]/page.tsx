@@ -15,15 +15,15 @@ export default async function ProductEditorPage({ params, searchParams }: {
   const { id } = await params;
   const sp = await searchParams;
   const productId = Number.parseInt(id, 10);
-  const p = getProductById(productId);
+  const p = await getProductById(productId);
   if (!p) notFound();
-  const specs = getSpecs(productId);
-  const media = getMedia(productId);
-  const evaluation = evaluateProduct(productId);
-  const mediaState = mediaCompletenessFor(productId);
+  const specs = await getSpecs(productId);
+  const media = await getMedia(productId);
+  const evaluation = await evaluateProduct(productId);
+  const mediaState = await mediaCompletenessFor(productId);
   const required = SPEC_TEMPLATES[p.spec_template] ?? [];
-  const variants = all<{ id: number; name: string; sku: string; barcode: string; status: string }>('SELECT * FROM product_variants WHERE product_id = ?', [productId]);
-  const revisions = all<{ id: number; change_json: string; created_at: string }>('SELECT * FROM product_revisions WHERE product_id = ? ORDER BY created_at DESC LIMIT 20', [productId]);
+  const variants = await all<{ id: number; name: string; sku: string; barcode: string; status: string }>('SELECT * FROM product_variants WHERE product_id = ?', [productId]);
+  const revisions = await all<{ id: number; change_json: string; created_at: string }>('SELECT * FROM product_revisions WHERE product_id = ? ORDER BY created_at DESC LIMIT 20', [productId]);
 
   return (
     <>

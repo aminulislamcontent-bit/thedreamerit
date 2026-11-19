@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q } = await searchParams;
-  const results = q ? listProducts({ search: q, status: 'published' }) : [];
+  const results = q ? await listProducts({ search: q, status: 'published' }) : [];
   return (
     <>
       <Crumbs items={[{ label: 'হোম', href: '/' }, { label: 'খোঁজা' }]} />

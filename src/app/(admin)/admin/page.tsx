@@ -8,10 +8,10 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
-  const m = dashboardMetrics();
-  const health = healthSnapshot();
-  const audit = recentAuditEvents(12);
-  const sales = salesByStatus();
+  const m = await dashboardMetrics();
+  const health = await healthSnapshot();
+  const audit = await recentAuditEvents(12);
+  const sales = await salesByStatus();
   return (
     <>
       <PageNotices searchParams={sp} />

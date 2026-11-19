@@ -8,15 +8,15 @@ export const dynamic = 'force-dynamic';
 
 export default async function CrmPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
-  const customers = all<{ id: number; name: string; phone: string; email: string; consent_marketing: number; created_at: string }>('SELECT * FROM customers ORDER BY id DESC');
-  const leads = all<{ id: number; name: string; source: string; status: string; consent_verified: number }>('SELECT * FROM leads ORDER BY id DESC');
-  const tickets = all<{ id: number; subject: string; status: string; priority: string }>('SELECT * FROM support_tickets ORDER BY id DESC');
-  const followups = all<{ id: number; note: string; status: string; due_at: string | null }>('SELECT * FROM follow_up_tasks');
-  const communications = all<{ id: number; channel: string; summary: string; consent_verified: number }>('SELECT * FROM communications ORDER BY id DESC');
-  const consent = all<{ id: number; customer_id: number; kind: string; granted: number; source: string }>('SELECT * FROM consent_records ORDER BY id DESC');
-  const segments = all<{ id: number; name: string }>('SELECT * FROM segments');
-  const warranties = all<{ id: number; order_id: number; status: string }>('SELECT * FROM warranty_claims');
-  const returns = all<{ id: number; order_id: number; status: string }>('SELECT * FROM return_requests');
+  const customers = await all<{ id: number; name: string; phone: string; email: string; consent_marketing: number; created_at: string }>('SELECT * FROM customers ORDER BY id DESC');
+  const leads = await all<{ id: number; name: string; source: string; status: string; consent_verified: number }>('SELECT * FROM leads ORDER BY id DESC');
+  const tickets = await all<{ id: number; subject: string; status: string; priority: string }>('SELECT * FROM support_tickets ORDER BY id DESC');
+  const followups = await all<{ id: number; note: string; status: string; due_at: string | null }>('SELECT * FROM follow_up_tasks');
+  const communications = await all<{ id: number; channel: string; summary: string; consent_verified: number }>('SELECT * FROM communications ORDER BY id DESC');
+  const consent = await all<{ id: number; customer_id: number; kind: string; granted: number; source: string }>('SELECT * FROM consent_records ORDER BY id DESC');
+  const segments = await all<{ id: number; name: string }>('SELECT * FROM segments');
+  const warranties = await all<{ id: number; order_id: number; status: string }>('SELECT * FROM warranty_claims');
+  const returns = await all<{ id: number; order_id: number; status: string }>('SELECT * FROM return_requests');
   return (
     <>
       <PageNotices searchParams={sp} />

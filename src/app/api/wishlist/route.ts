@@ -10,6 +10,6 @@ export async function POST(request: Request) {
   let body: { productId?: number };
   try { body = await request.json(); } catch { return NextResponse.json({ ok: false, error: 'Invalid JSON.' }, { status: 400 }); }
   if (!Number.isInteger(body.productId)) return NextResponse.json({ ok: false, error: 'Invalid product id.' }, { status: 400 });
-  run('INSERT OR IGNORE INTO wishlist_items (user_id, product_id, created_at) VALUES (?, ?, ?)', [user.id, body.productId as number, nowIso()]);
+  await run('INSERT OR IGNORE INTO wishlist_items (user_id, product_id, created_at) VALUES (?, ?, ?)', [user.id, body.productId as number, nowIso()]);
   return NextResponse.json({ ok: true });
 }

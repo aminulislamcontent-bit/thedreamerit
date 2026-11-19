@@ -9,11 +9,11 @@ export const dynamic = 'force-dynamic';
 
 export default async function SeoPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
-  const checks = recentSeoChecks();
-  const redirects = all<{ id: number; from_path: string; to_path: string; status_code: number }>('SELECT * FROM redirects ORDER BY id DESC');
-  const broken = all<{ id: number; url: string; status_code: number; checked_at: string }>('SELECT * FROM broken_links ORDER BY id DESC');
-  const products = all<{ slug: string; status: string; title: string; indexable: number }>(`SELECT p.slug, p.status, COALESCE(s.title,'') AS title, COALESCE(s.indexable,0) AS indexable FROM products p LEFT JOIN product_seo s ON s.product_id = p.id`);
-  const sitemap = sitemapXml();
+  const checks = await recentSeoChecks();
+  const redirects = await all<{ id: number; from_path: string; to_path: string; status_code: number }>('SELECT * FROM redirects ORDER BY id DESC');
+  const broken = await all<{ id: number; url: string; status_code: number; checked_at: string }>('SELECT * FROM broken_links ORDER BY id DESC');
+  const products = await all<{ slug: string; status: string; title: string; indexable: number }>(`SELECT p.slug, p.status, COALESCE(s.title,'') AS title, COALESCE(s.indexable,0) AS indexable FROM products p LEFT JOIN product_seo s ON s.product_id = p.id`);
+  const sitemap = await sitemapXml();
   const entries = (sitemap.match(/<url>/g) || []).length;
   return (
     <>

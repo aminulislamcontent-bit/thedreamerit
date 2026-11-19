@@ -6,12 +6,12 @@ import { Badge, Card, Notice, Stat } from '@/components/ui';
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const published = scalar("SELECT COUNT(*) AS n FROM products WHERE status = 'published' AND is_demo = 0");
-  const verified = scalar("SELECT COUNT(*) AS n FROM products WHERE verification_status = 'verified' AND is_demo = 0");
-  const activeCategories = scalar('SELECT COUNT(*) AS n FROM categories WHERE is_active = 1');
-  const totalCategories = scalar('SELECT COUNT(*) AS n FROM categories');
-  const demo = scalar('SELECT COUNT(*) AS n FROM products WHERE is_demo = 1');
-  const groups = all<{ group_name: string; total: number; active: number }>(
+  const published = await scalar("SELECT COUNT(*) AS n FROM products WHERE status = 'published' AND is_demo = 0");
+  const verified = await scalar("SELECT COUNT(*) AS n FROM products WHERE verification_status = 'verified' AND is_demo = 0");
+  const activeCategories = await scalar('SELECT COUNT(*) AS n FROM categories WHERE is_active = 1');
+  const totalCategories = await scalar('SELECT COUNT(*) AS n FROM categories');
+  const demo = await scalar('SELECT COUNT(*) AS n FROM products WHERE is_demo = 1');
+  const groups = await all<{ group_name: string; total: number; active: number }>(
     'SELECT group_name, COUNT(*) AS total, SUM(is_active) AS active FROM categories GROUP BY group_name ORDER BY MIN(sort_order)');
 
   return (
