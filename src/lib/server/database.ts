@@ -91,7 +91,7 @@ async function buildDriver(): Promise<Driver> {
 /* Migrations (Postgres path)                                         */
 /* ------------------------------------------------------------------ */
 
-function sqlLiteToPostgres(sql: string): string {
+export function sqlLiteToPostgres(sql: string): string {
   let out = sql;
   out = out.replace(
     /(?<!\w)("?\w+"?)\s+INTEGER\s+PRIMARY\s+KEY\s+AUTOINCREMENT/gi,
