@@ -105,7 +105,7 @@ export function sqlLiteToPostgres(sql: string): string {
   // PostgreSQL needs a sequence-backed default for the conventional id column.
   // Keep foreign/composite keys such as customer_id INTEGER PRIMARY KEY intact.
   out = out.replace(
-    /(^\\s*"?id"?\\s+)INTEGER\\s+PRIMARY\\s+KEY(?!\\s+AUTOINCREMENT)/gim,
+    /(^\s*"?id"?\s+)INTEGER\s+PRIMARY\s+KEY(?!\s+AUTOINCREMENT)/gim,
     '$1SERIAL PRIMARY KEY'
   );
   out = out.replace(/\bBLOB\b/gi, 'BYTEA');
