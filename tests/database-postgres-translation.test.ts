@@ -15,7 +15,7 @@ test('PostgreSQL migration translation preserves foreign-key primary keys', () =
     customer_id INTEGER PRIMARY KEY REFERENCES customers(id),
     note TEXT
   );`);
-  assert.match(sql, /customer_id INTEGER PRIMARY KEY REFERENCES customers\\(id\\)/i);
+  assert.match(sql, /customer_id INTEGER PRIMARY KEY REFERENCES customers\(id\)/i);
   assert.doesNotMatch(sql, /customer_id SERIAL PRIMARY KEY/i);
 });
 
