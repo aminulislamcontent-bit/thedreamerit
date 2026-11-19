@@ -101,6 +101,13 @@ function sqlLiteToPostgres(sql: string): string {
     /(?<!\w)("?\w+"?)\s+INTEGER\s+NOT\s+NULL\s+PRIMARY\s+KEY(?!\s*DEFAULT)/gi,
     '$1 SERIAL PRIMARY KEY'
   );
+  // SQLite treats a plain INTEGER PRIMARY KEY as a generated rowid.
+  // PostgreSQL needs a sequence-backed default for the conventional id column.
+  // Keep foreign/composite keys such as customer_id INTEGER PRIMARY KEY intact.
+  out = out.replace(
+    /(^\\s*"?id"?\\s+)INTEGER\\s+PRIMARY\\s+KEY(?!\\s+AUTOINCREMENT)/gim,
+    '$1SERIAL PRIMARY KEY'
+  );
   out = out.replace(/\bBLOB\b/gi, 'BYTEA');
   out = out.replace(/INSERT\s+OR\s+IGNORE\s+INTO/gi, 'INSERT INTO');
   out = translatePlaceholders(out);
