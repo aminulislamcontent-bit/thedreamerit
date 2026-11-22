@@ -71,8 +71,8 @@ export async function confirmPublicationAction(fd: FormData): Promise<void> {
 
 export async function runSeoChecksAction(fd: FormData): Promise<void> {
   await guard(fd, 'seo.manage');
-  const result = runSeoChecks();
-  const links = checkInternalLinks();
+  const result = await runSeoChecks();
+  const links = await checkInternalLinks();
   revalidatePath('/admin/seo');
   done('/admin/seo', `${result.checked} pages checked, ${result.failures} failures; ${links.broken.length} unresolved internal links.`);
 }
@@ -88,7 +88,7 @@ export async function addRedirectAction(fd: FormData): Promise<void> {
 export async function createBackupAction(fd: FormData): Promise<void> {
   await guard(fd, 'backups.manage');
   try {
-    const result = performBackup();
+    const result = await performBackup();
     revalidatePath('/admin/backups');
     done('/admin/backups', `Backup #${result.id} created (${result.size} bytes). Verify it before relying on it.`);
   } catch (error) { fail('/admin/backups', error instanceof Error ? error.message : 'Backup failed.'); }
@@ -96,7 +96,7 @@ export async function createBackupAction(fd: FormData): Promise<void> {
 
 export async function verifyBackupAction(fd: FormData): Promise<void> {
   await guard(fd, 'backups.manage');
-  const result = verifyBackup(field(fd, 'file'));
+  const result = await verifyBackup(field(fd, 'file'));
   revalidatePath('/admin/backups');
   if (!result.ok) fail('/admin/backups', result.reason || 'Verification failed.');
   done('/admin/backups', `Checksum and test restore verified (${result.tables} tables).`);
@@ -104,7 +104,7 @@ export async function verifyBackupAction(fd: FormData): Promise<void> {
 
 export async function resolveFailedJobAction(fd: FormData): Promise<void> {
   await guard(fd, 'security.manage');
-  resolveFailedJob(intField(fd, 'jobId'));
+  await resolveFailedJob(intField(fd, 'jobId'));
   revalidatePath('/admin/backups');
   done('/admin/backups', 'Failed job marked resolved.');
 }
@@ -113,7 +113,7 @@ export async function createLeadAction(fd: FormData): Promise<void> {
   await guard(fd, 'crm.manage');
   const name = field(fd, 'name');
   if (!name) fail('/admin/crm', 'Lead name required.');
-  run('INSERT INTO leads (name, phone, email, source, status, consent_verified, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+  await run('INSERT INTO leads (name, phone, email, source, status, consent_verified, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
     [name, field(fd, 'phone'), field(fd, 'email'), field(fd, 'source'), 'new', 0, nowIso()]);
   revalidatePath('/admin/crm');
   done('/admin/crm', 'Lead recorded; marketing consent is not assumed.');
@@ -123,7 +123,7 @@ export async function createTicketAction(fd: FormData): Promise<void> {
   await guard(fd, 'crm.manage');
   const subject = field(fd, 'subject');
   if (!subject) fail('/admin/crm', 'Ticket subject required.');
-  run('INSERT INTO support_tickets (customer_id, subject, body, status, priority, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+  await run('INSERT INTO support_tickets (customer_id, subject, body, status, priority, created_at) VALUES (?, ?, ?, ?, ?, ?)',
     [intField(fd, 'customerId') || null, subject, field(fd, 'body'), 'open', field(fd, 'priority') || 'normal', nowIso()]);
   revalidatePath('/admin/crm');
   done('/admin/crm', 'Support ticket created.');
@@ -133,9 +133,9 @@ export async function recordConsentAction(fd: FormData): Promise<void> {
   await guard(fd, 'customers.edit');
   const customerId = intField(fd, 'customerId');
   if (!customerId) fail('/admin/crm', 'Customer required.');
-  run('INSERT INTO consent_records (customer_id, kind, granted, source, recorded_at) VALUES (?, ?, ?, ?, ?)',
+  await run('INSERT INTO consent_records (customer_id, kind, granted, source, recorded_at) VALUES (?, ?, ?, ?, ?)',
     [customerId, field(fd, 'kind') || 'marketing', field(fd, 'granted') === '1' ? 1 : 0, field(fd, 'source') || 'in-person', nowIso()]);
-  run('UPDATE customers SET consent_marketing = ? WHERE id = ?', [field(fd, 'granted') === '1' ? 1 : 0, customerId]);
+  await run('UPDATE customers SET consent_marketing = ? WHERE id = ?', [field(fd, 'granted') === '1' ? 1 : 0, customerId]);
   revalidatePath('/admin/crm');
   done('/admin/crm', 'Consent record stored with its source.');
 }

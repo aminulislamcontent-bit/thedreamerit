@@ -12,15 +12,15 @@ export const dynamic = 'force-dynamic';
 export default async function SecurityPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
   const user = await getCurrentUser();
-  const secretRow = get<{ mfa_secret: string | null }>('SELECT mfa_secret FROM users WHERE id = ?', [user?.id ?? 0]);
+  const secretRow = await get<{ mfa_secret: string | null }>('SELECT mfa_secret FROM users WHERE id = ?', [user?.id ?? 0]);
   const uri = user?.mfaEnabled && secretRow?.mfa_secret ? totpProvisioningUri(secretRow.mfa_secret, user.email) : null;
-  const audit = all<{ id: number; created_at: string; actor_label: string; action: string; entity_type: string; ip: string }>('SELECT * FROM audit_events ORDER BY created_at DESC LIMIT 60');
-  const sessions = all<{ id: number; user_id: number; created_at: string; expires_at: string; revoked_at: string | null }>('SELECT * FROM sessions ORDER BY created_at DESC LIMIT 20');
-  const roles = all<{ slug: string; name: string }>('SELECT slug, name FROM roles');
-  const permissions = all<{ slug: string }>('SELECT slug FROM permissions ORDER BY slug');
-  const rateHits = all<{ bucket: string; subject: string; created_at: string }>('SELECT * FROM rate_limit_hits ORDER BY created_at DESC LIMIT 20');
-  const logs = all<{ level: string; message: string; created_at: string }>('SELECT * FROM app_logs ORDER BY created_at DESC LIMIT 20');
-  const scheduler = schedulerStatus();
+  const audit = await all<{ id: number; created_at: string; actor_label: string; action: string; entity_type: string; ip: string }>('SELECT * FROM audit_events ORDER BY created_at DESC LIMIT 60');
+  const sessions = await all<{ id: number; user_id: number; created_at: string; expires_at: string; revoked_at: string | null }>('SELECT * FROM sessions ORDER BY created_at DESC LIMIT 20');
+  const roles = await all<{ slug: string; name: string }>('SELECT slug, name FROM roles');
+  const permissions = await all<{ slug: string }>('SELECT slug FROM permissions ORDER BY slug');
+  const rateHits = await all<{ bucket: string; subject: string; created_at: string }>('SELECT * FROM rate_limit_hits ORDER BY created_at DESC LIMIT 20');
+  const logs = await all<{ level: string; message: string; created_at: string }>('SELECT * FROM app_logs ORDER BY created_at DESC LIMIT 20');
+  const scheduler = await schedulerStatus();
   return (
     <>
       <PageNotices searchParams={sp} />
@@ -47,7 +47,7 @@ export default async function SecurityPage({ searchParams }: { searchParams: Pro
         </Card>
         <Card><h2>RBAC ভূমিকা ও অনুমতি</h2><Table headers={['slug', 'নাম']}>{roles.map((r) => <tr key={r.slug}><td><code>{r.slug}</code></td><td>{r.name}</td></tr>)}</Table>
           <h3 style={{ marginTop: 14 }}>অনুমতি স্লাগ</h3><div className="tag-list">{permissions.map((p) => <span key={p.slug} className="badge">{p.slug}</span>)}</div>
-          <p className="muted" style={{ fontSize: '.8rem', marginTop: 10 }}>প্রতিটি privileged server action <code>requirePermission()</code> ও <code>requireCsrf()</code> দিয়ে সুরক্ষিত; পাবলিক ফর্ম হার-সীমিত ও হানিপট-যাচাইকৃত।</p>
+          <p className="muted" style={{ fontSize: '.8rem', marginTop: 10 }}>প্রতিটি privileged server action <code>await requirePermission()</code> ও <code>await requireCsrf()</code> দিয়ে সুরক্ষিত; পাবলিক ফর্ম হার-সীমিত ও হানিপট-যাচাইকৃত।</p>
         </Card>
       </div>
       <div className="grid grid-2" style={{ marginTop: 22 }}>

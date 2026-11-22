@@ -11,8 +11,8 @@ export default async function WarrantyPage({ searchParams }: { searchParams: Pro
   const sp = await searchParams;
   const user = await getCurrentUser();
   if (!user) redirect('/login?next=/account/warranty');
-  const orders = all<{ id: number; order_number: string }>('SELECT id, order_number FROM orders WHERE user_id = ?', [user.id]);
-  const claims = all<{ id: number; order_id: number; issue: string; status: string; created_at: string }>('SELECT * FROM warranty_claims ORDER BY created_at DESC LIMIT 50');
+  const orders = await all<{ id: number; order_number: string }>('SELECT id, order_number FROM orders WHERE user_id = ?', [user.id]);
+  const claims = await all<{ id: number; order_id: number; issue: string; status: string; created_at: string }>('SELECT * FROM warranty_claims ORDER BY created_at DESC LIMIT 50');
   return (
     <><Crumbs items={[{ label: 'হোম', href: '/' }, { label: 'অ্যাকাউন্ট', href: '/account' }, { label: 'ওয়ারেন্টি' }]} /><PageNotices searchParams={sp} />
       <PageHead title="ওয়ারেন্টি অনুরোধ" subtitle="সিরিয়াল নাম্বার ও ক্রয় রেকর্ডের ভিত্তিতে অনুরোধ যাচাই করা হয়।" />

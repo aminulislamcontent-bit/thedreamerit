@@ -37,89 +37,91 @@ function minusMillis(iso: string, millis: number): string {
   return new Date(Date.parse(iso) - millis).toISOString();
 }
 
-export function ensureScheduledJobs(at: string = nowIso()): void {
+export async function ensureScheduledJobs(at?: string): Promise<void> {
+  const a = at ?? nowIso();
   for (const definition of SCHEDULED_JOB_DEFINITIONS) {
-    run(`INSERT OR IGNORE INTO scheduled_jobs
+    await run(`INSERT OR IGNORE INTO scheduled_jobs
       (name, description, interval_minutes, enabled, next_run_at, created_at)
       VALUES (?, ?, ?, 1, ?, ?)`,
-      [definition.name, definition.description, definition.intervalMinutes, at, at]);
+      [definition.name, definition.description, definition.intervalMinutes, a, a]);
   }
 }
 
-type JobHandler = (at: string) => string;
+type JobHandler = (at: string) => Promise<string>;
 
 const HANDLERS: Record<string, JobHandler> = {
-  expired_session_cleanup: (at) => {
-    const result = run('DELETE FROM sessions WHERE expires_at <= ?', [at]);
+  async expired_session_cleanup(at) {
+    const result = await run('DELETE FROM sessions WHERE expires_at <= ?', [at]);
     return `Deleted ${result.changes} expired session(s).`;
   },
-  rate_limit_cleanup: (at) => {
+  async rate_limit_cleanup(at) {
     const cutoff = minusMillis(at, 24 * 60 * 60 * 1000);
-    const result = run('DELETE FROM rate_limit_hits WHERE created_at < ?', [cutoff]);
+    const result = await run('DELETE FROM rate_limit_hits WHERE created_at < ?', [cutoff]);
     return `Deleted ${result.changes} rate-limit hit(s) older than 24h.`;
   },
-  failed_job_alert: () => {
-    const open = scalar("SELECT COUNT(*) AS n FROM failed_jobs WHERE status = 'open'");
-    if (open > 0) log('warn', 'Open failed jobs require operator attention', { open });
+  async failed_job_alert() {
+    const open = await scalar("SELECT COUNT(*) AS n FROM failed_jobs WHERE status = 'open'");
+    if (open > 0) await log('warn', 'Open failed jobs require operator attention', { open });
     return `${open} open failed job(s).`;
   },
-  backup_freshness_check: (at) => {
+  async backup_freshness_check(at) {
     const cutoff = minusMillis(at, 24 * 60 * 60 * 1000);
-    const verified = scalar("SELECT COUNT(*) AS n FROM backups WHERE integrity_status = 'verified' AND created_at >= ?", [cutoff]);
-    if (verified === 0) log('warn', 'No verified backup in the last 24 hours', { checkedAfter: cutoff });
-    else log('info', 'Backup freshness check', { verifiedBackupsLast24h: verified });
+    const verified = await scalar("SELECT COUNT(*) AS n FROM backups WHERE integrity_status = 'verified' AND created_at >= ?", [cutoff]);
+    if (verified === 0) await log('warn', 'No verified backup in the last 24 hours', { checkedAfter: cutoff });
+    else await log('info', 'Backup freshness check', { verifiedBackupsLast24h: verified });
     return `${verified} verified backup(s) in the last 24h.`;
   },
-  catalogue_gate_snapshot: () => {
-    const active = scalar('SELECT COUNT(*) AS n FROM categories WHERE is_active = 1');
-    const verified = scalar("SELECT COUNT(*) AS n FROM products WHERE is_demo = 0 AND verification_status = 'verified'");
-    const published = scalar("SELECT COUNT(*) AS n FROM products WHERE is_demo = 0 AND status = 'published'");
-    log('info', 'Scheduled catalogue gate snapshot', { activeCategories: active, verifiedModels: verified, publishedProducts: published });
+  async catalogue_gate_snapshot() {
+    const active = await scalar('SELECT COUNT(*) AS n FROM categories WHERE is_active = 1');
+    const verified = await scalar("SELECT COUNT(*) AS n FROM products WHERE is_demo = 0 AND verification_status = 'verified'");
+    const published = await scalar("SELECT COUNT(*) AS n FROM products WHERE is_demo = 0 AND status = 'published'");
+    await log('info', 'Scheduled catalogue gate snapshot', { activeCategories: active, verifiedModels: verified, publishedProducts: published });
     return `active=${active}, verified non-demo models=${verified}, published=${published}; per-category shortfall is computed by Admin → Catalogue.`;
   },
-  job_run_retention: (at) => {
+  async job_run_retention(at) {
     const cutoff = minusMillis(at, 30 * 24 * 60 * 60 * 1000);
-    const result = run('DELETE FROM scheduled_job_runs WHERE started_at < ?', [cutoff]);
+    const result = await run('DELETE FROM scheduled_job_runs WHERE started_at < ?', [cutoff]);
     return `Deleted ${result.changes} job-run record(s) older than 30 days.`;
   },
 };
 
 /** Runs all due jobs once. Safe to call from CLI, cron, or the in-process scheduler. */
-export function runDueJobs(at: string = nowIso()): JobRunSummary {
-  ensureScheduledJobs(at);
-  return transaction(() => {
-    const due = all<ScheduledJobRow>(
+export async function runDueJobs(at?: string): Promise<JobRunSummary> {
+  const a = at ?? nowIso();
+  await ensureScheduledJobs(a);
+  return transaction(async () => {
+    const due = await all<ScheduledJobRow>(
       'SELECT id, name, interval_minutes, enabled, next_run_at, last_run_at FROM scheduled_jobs WHERE enabled = 1 AND next_run_at <= ? ORDER BY next_run_at, id',
-      [at],
+      [a],
     );
     const ran: string[] = [];
     const failed: string[] = [];
 
     for (const job of due) {
       const startedAt = nowIso();
-      const runId = Number(run(
+      const ins = await run(
         "INSERT INTO scheduled_job_runs (job_id, started_at, status, detail) VALUES (?, ?, 'running', '')",
         [job.id, startedAt],
-      ).lastInsertRowid);
+      );
+      const runId = Number(ins.lastInsertRowid);
       try {
         const handler = HANDLERS[job.name];
         if (!handler) throw new Error(`No handler registered for ${job.name}`);
-        const detail = handler(startedAt);
+        const detail = await handler(startedAt);
         const finishedAt = nowIso();
-        run("UPDATE scheduled_job_runs SET finished_at = ?, status = 'succeeded', detail = ? WHERE id = ?", [finishedAt, detail, runId]);
-        run('UPDATE scheduled_jobs SET last_run_at = ?, next_run_at = ? WHERE id = ?', [finishedAt, plusMinutes(at, job.interval_minutes), job.id]);
+        await run("UPDATE scheduled_job_runs SET finished_at = ?, status = 'succeeded', detail = ? WHERE id = ?", [finishedAt, detail, runId]);
+        await run('UPDATE scheduled_jobs SET last_run_at = ?, next_run_at = ? WHERE id = ?', [finishedAt, plusMinutes(a, job.interval_minutes), job.id]);
         ran.push(job.name);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         const finishedAt = nowIso();
-        run("UPDATE scheduled_job_runs SET finished_at = ?, status = 'failed', detail = '', error = ? WHERE id = ?", [finishedAt, message, runId]);
-        // Retry a failed job sooner than its normal interval, but never in a tight loop.
-        run('UPDATE scheduled_jobs SET last_run_at = ?, next_run_at = ? WHERE id = ?', [finishedAt, plusMinutes(at, Math.min(job.interval_minutes, 15)), job.id]);
-        log('error', `Scheduled job failed: ${job.name}`, { error: message });
+        await run("UPDATE scheduled_job_runs SET finished_at = ?, status = 'failed', detail = '', error = ? WHERE id = ?", [finishedAt, message, runId]);
+        await run('UPDATE scheduled_jobs SET last_run_at = ?, next_run_at = ? WHERE id = ?', [finishedAt, plusMinutes(a, Math.min(job.interval_minutes, 15)), job.id]);
+        await log('error', `Scheduled job failed: ${job.name}`, { error: message });
         failed.push(job.name);
       }
     }
-    return { at, due: due.length, ran, failed };
+    return { at: a, due: due.length, ran, failed };
   });
 }
 
@@ -132,8 +134,8 @@ export function startInternalScheduler(): void {
 
   const configured = Number(process.env.SCHEDULER_INTERVAL_MS || 60_000);
   const intervalMs = Number.isFinite(configured) ? Math.max(30_000, configured) : 60_000;
-  const tick = () => {
-    try { runDueJobs(); }
+  const tick = async () => {
+    try { await runDueJobs(); }
     catch (error) { console.error('[scheduler] tick failed', error); }
   };
   const initial = setTimeout(tick, 5_000);
@@ -142,12 +144,12 @@ export function startInternalScheduler(): void {
   timer.unref?.();
 }
 
-export function schedulerStatus() {
-  ensureScheduledJobs();
-  const jobs = all<{ name: string; description: string; interval_minutes: number; enabled: number; last_run_at: string | null; next_run_at: string }>(
+export async function schedulerStatus() {
+  await ensureScheduledJobs();
+  const jobs = await all<{ name: string; description: string; interval_minutes: number; enabled: number; last_run_at: string | null; next_run_at: string }>(
     'SELECT name, description, interval_minutes, enabled, last_run_at, next_run_at FROM scheduled_jobs ORDER BY name',
   );
-  const lastRun = get<{ job_id: number; started_at: string; finished_at: string | null; status: string; detail: string; error: string | null }>(
+  const lastRun = await get<{ job_id: number; started_at: string; finished_at: string | null; status: string; detail: string; error: string | null }>(
     'SELECT job_id, started_at, finished_at, status, detail, error FROM scheduled_job_runs ORDER BY id DESC LIMIT 1',
   ) ?? null;
   return {
@@ -158,6 +160,6 @@ export function schedulerStatus() {
     })(),
     jobs,
     lastRun,
-    openFailedJobs: scalar("SELECT COUNT(*) AS n FROM failed_jobs WHERE status = 'open'"),
+    openFailedJobs: await scalar("SELECT COUNT(*) AS n FROM failed_jobs WHERE status = 'open'"),
   };
 }

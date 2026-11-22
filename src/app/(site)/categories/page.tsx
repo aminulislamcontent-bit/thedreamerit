@@ -7,11 +7,11 @@ export const dynamic = 'force-dynamic';
 
 export default async function CategoriesPage({ searchParams }: { searchParams: Promise<{ group?: string }> }) {
   const { group } = await searchParams;
-  const rows = all<{ id: number; slug: string; name_en: string; group_name: string; is_active: number; spec_template: string; products: number; verified: number }>(
+  const rows = await all<{ id: number; slug: string; name_en: string; group_name: string; is_active: number; spec_template: string; products: number; verified: number }>(
     `SELECT c.*, (SELECT COUNT(*) FROM products p WHERE p.category_id = c.id) AS products,
       (SELECT COUNT(*) FROM products p WHERE p.category_id = c.id AND p.verification_status = 'verified' AND p.is_demo = 0) AS verified
      FROM categories c ${group ? 'WHERE c.group_name = ?' : ''} ORDER BY c.sort_order`, group ? [group] : []);
-  const active = scalar('SELECT COUNT(*) AS n FROM categories WHERE is_active = 1');
+  const active = await scalar('SELECT COUNT(*) AS n FROM categories WHERE is_active = 1');
   return (
     <>
       <Crumbs items={[{ label: 'হোম', href: '/' }, { label: 'ক্যাটাগরি' }]} />

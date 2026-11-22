@@ -8,13 +8,13 @@ export const dynamic = 'force-dynamic';
 
 export default async function EmployeesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
-  const employees = all<{ id: number; employee_code: string; department: string; designation: string; status: string }>('SELECT * FROM employees ORDER BY id');
-  const attendance = all<{ id: number; employee_id: number; business_date: string; status: string }>('SELECT * FROM attendance ORDER BY business_date DESC LIMIT 20');
-  const rules = all<{ id: number; name: string; basis: string; rate_bps: number; flat_amount: number; min_margin_bps: number; active: number }>('SELECT * FROM commission_rules ORDER BY id');
-  const records = all<{ id: number; employee_id: number; order_id: number; commission_amount: number; status: string }>('SELECT * FROM commission_records ORDER BY id DESC LIMIT 30');
-  const targets = all<{ id: number; employee_id: number; period: string; target_amount: number; achieved_amount: number }>('SELECT * FROM performance_targets');
-  const exports = all<{ id: number; period: string; created_at: string }>('SELECT * FROM payroll_exports ORDER BY id DESC');
-  const branches = all<{ id: number; name: string }>('SELECT id, name FROM branches');
+  const employees = await all<{ id: number; employee_code: string; department: string; designation: string; status: string }>('SELECT * FROM employees ORDER BY id');
+  const attendance = await all<{ id: number; employee_id: number; business_date: string; status: string }>('SELECT * FROM attendance ORDER BY business_date DESC LIMIT 20');
+  const rules = await all<{ id: number; name: string; basis: string; rate_bps: number; flat_amount: number; min_margin_bps: number; active: number }>('SELECT * FROM commission_rules ORDER BY id');
+  const records = await all<{ id: number; employee_id: number; order_id: number; commission_amount: number; status: string }>('SELECT * FROM commission_records ORDER BY id DESC LIMIT 30');
+  const targets = await all<{ id: number; employee_id: number; period: string; target_amount: number; achieved_amount: number }>('SELECT * FROM performance_targets');
+  const exports = await all<{ id: number; period: string; created_at: string }>('SELECT * FROM payroll_exports ORDER BY id DESC');
+  const branches = await all<{ id: number; name: string }>('SELECT id, name FROM branches');
   return (
     <>
       <PageNotices searchParams={sp} />
@@ -33,7 +33,7 @@ export default async function EmployeesPage({ searchParams }: { searchParams: Pr
           <div className="field"><label htmlFor="attDate">তারিখ</label><input id="attDate" name="date" type="date" /></div>
           <button className="btn btn-sm" type="submit">উপস্থিতি রেকর্ড করুন</button>
         </form>
-          <p className="muted" style={{ fontSize: '.8rem' }}>শিফট: {all<{ name: string; starts_at: string; ends_at: string }>('SELECT * FROM shifts').map((s) => `${s.name} ${s.starts_at}–${s.ends_at}`).join(', ') || 'নেই'}। ছুটি ও ব্যক্তিগত/স্বাস্থ্য তথ্য আলাদা অনুমতির আওতায়।</p>
+          <p className="muted" style={{ fontSize: '.8rem' }}>শিফট: {await (await all<{ name: string; starts_at: string; ends_at: string }>('SELECT * FROM shifts')).map((s) => `${s.name} ${s.starts_at}–${s.ends_at}`).join(', ') || 'নেই'}। ছুটি ও ব্যক্তিগত/স্বাস্থ্য তথ্য আলাদা অনুমতির আওতায়।</p>
         </Card>
         <Card><h2>কমিশন নিয়ম</h2>{rules.map((r) => <p key={r.id} className="muted">{r.name}: {r.basis} · {r.rate_bps} bps · সর্বনিম্ন মার্জিন {r.min_margin_bps} bps · {r.active ? 'সক্রিয়' : 'নিষ্ক্রিয়'}</p>)}
           <form action={updateCommissionRuleAction} className="stack"><CsrfInput /><input type="hidden" name="ruleId" value={rules[0]?.id ?? ''} />

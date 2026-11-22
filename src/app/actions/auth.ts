@@ -36,7 +36,7 @@ export async function setupMfaAction(fd: FormData): Promise<void> {
   const user = await getCurrentUser();
   if (!user) redirect('/login');
   await requireCsrf(fd.get('_csrf') === null ? null : String(fd.get('_csrf')));
-  run('UPDATE users SET mfa_secret = ?, mfa_enabled = 1 WHERE id = ?', [generateTotpSecret(), user.id]);
+  await run('UPDATE users SET mfa_secret = ?, mfa_enabled = 1 WHERE id = ?', [generateTotpSecret(), user.id]);
   redirect('/admin/security?ok=' + encodeURIComponent('MFA সক্রিয় হয়েছে। নিচের provisioning URI অথেনটিকেটরে যোগ করুন এবং পরবর্তী লগইনে ৬-সংখ্যার কোড দিন।'));
 }
 
@@ -46,7 +46,7 @@ export async function disableMfaAction(fd: FormData): Promise<void> {
   const user = await getCurrentUser();
   if (!user) redirect('/login');
   await requireCsrf(fd.get('_csrf') === null ? null : String(fd.get('_csrf')));
-  run('UPDATE users SET mfa_secret = NULL, mfa_enabled = 0 WHERE id = ?', [user.id]);
+  await run('UPDATE users SET mfa_secret = NULL, mfa_enabled = 0 WHERE id = ?', [user.id]);
   redirect('/admin/security?ok=' + encodeURIComponent('MFA নিষ্ক্রিয় করা হয়েছে।'));
 }
 
@@ -59,10 +59,10 @@ export async function changePasswordAction(fd: FormData): Promise<void> {
   await requireCsrf(fd.get('_csrf') === null ? null : String(fd.get('_csrf')));
   const current = String(fd.get('currentPassword') ?? '');
   const next = String(fd.get('newPassword') ?? '');
-  const row = get<{ password_hash: string; password_salt: string }>('SELECT password_hash, password_salt FROM users WHERE id = ?', [user.id]);
+  const row = await get<{ password_hash: string; password_salt: string }>('SELECT password_hash, password_salt FROM users WHERE id = ?', [user.id]);
   if (!row || !verifyPassword(current, row.password_hash, row.password_salt)) redirect('/admin/security?error=' + encodeURIComponent('বর্তমান পাসওয়ার্ড মিলছে না।'));
   if (next.length < 12) redirect('/admin/security?error=' + encodeURIComponent('নতুন পাসওয়ার্ড কমপক্ষে ১২ অক্ষরের হতে হবে।'));
   const { hash, salt } = hashPassword(next);
-  run('UPDATE users SET password_hash = ?, password_salt = ? WHERE id = ?', [hash, salt, user.id]);
+  await run('UPDATE users SET password_hash = ?, password_salt = ? WHERE id = ?', [hash, salt, user.id]);
   redirect('/admin/security?ok=' + encodeURIComponent('পাসওয়ার্ড পরিবর্তন হয়েছে (scrypt, নতুন সল্ট)।'));
 }

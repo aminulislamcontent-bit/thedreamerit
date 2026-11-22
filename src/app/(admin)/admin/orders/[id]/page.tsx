@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 export default async function AdminOrderDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { id } = await params;
   const sp = await searchParams;
-  const order = getOrder(Number.parseInt(id, 10));
+  const order = await getOrder(Number.parseInt(id, 10));
   if (!order) notFound();
   const items = order.items as Array<Record<string, unknown>>;
   const payments = order.payments as Array<Record<string, unknown>>;
@@ -57,7 +57,7 @@ export default async function AdminOrderDetailPage({ params, searchParams }: { p
           <button className="btn btn-sm btn-danger" type="submit">রিফান্ড অনুরোধ</button>
         </form>
         <p className="muted" style={{ fontSize: '.82rem' }}>রিফান্ড যাচাইকৃত পেমেন্টের অঙ্কের বেশি হতে পারে না। বাতিল/রিটার্ন/রিফান্ডে রিজার্ভেশন মুক্ত ও কমিশন বিপরীত করা হয়।</p>
-        <h3 style={{ marginTop: 16 }}>পণ্য লিংক</h3><div className="tag-list">{items.map((i, n) => { const p = getProductById(Number(i.product_id)); return p ? <Link key={n} className="badge badge-info" href={`/admin/products/${p.id}`}>{p.model_name}</Link> : null; })}</div>
+        <h3 style={{ marginTop: 16 }}>পণ্য লিংক</h3><div className="tag-list">{items.map(async (i, n) => { const p = await getProductById(Number(i.product_id)); return p ? <Link key={n} className="badge badge-info" href={`/admin/products/${p.id}`}>{p.model_name}</Link> : null; })}</div>
         <p style={{ marginTop: 14 }}><Link className="btn btn-sm" href="/admin/orders">← সব অর্ডার</Link></p>
         </Card>
       </div>

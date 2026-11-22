@@ -48,7 +48,7 @@ export async function generateDerivatives(): Promise<DerivativeSummary> {
   const uploadsDir = path.join(process.cwd(), 'uploads');
   fs.mkdirSync(uploadsDir, { recursive: true });
 
-  const sources = all<MediaSource>(
+  const sources = await all<MediaSource>(
     `SELECT id, url FROM product_media
      WHERE kind = 'image' AND review_status = 'approved' AND permission_status = 'granted'
        AND url LIKE '/media/%' ORDER BY id`,
@@ -64,7 +64,7 @@ export async function generateDerivatives(): Promise<DerivativeSummary> {
       const input = fs.readFileSync(sourcePath);
       const sourceChecksum = sha256(input);
       for (const variant of DERIVATIVE_VARIANTS) {
-        const existing = get<DerivativeRow>(
+        const existing = await get<DerivativeRow>(
           'SELECT id, file_name, url, source_checksum, variant FROM media_derivatives WHERE media_id = ? AND variant = ?',
           [source.id, variant.name],
         );
@@ -81,8 +81,8 @@ export async function generateDerivatives(): Promise<DerivativeSummary> {
         const url = `/media/${fileName}`;
         fs.writeFileSync(path.join(uploadsDir, fileName), data);
         const checksum = sha256(data);
-        const createdAt = nowIso();
-        run(`INSERT INTO media_derivatives
+        const createdAt = await nowIso();
+        await run(`INSERT INTO media_derivatives
           (media_id, variant, file_name, url, width, height, mime_type, size_bytes, checksum, source_checksum, created_at)
           VALUES (?, ?, ?, ?, ?, ?, 'image/webp', ?, ?, ?, ?)
           ON CONFLICT(media_id, variant) DO UPDATE SET

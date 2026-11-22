@@ -8,9 +8,9 @@ export const dynamic = 'force-dynamic';
 
 export default async function BrandPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const b = get<{ id: number; name: string; website: string; verification_status: string }>('SELECT * FROM brands WHERE slug = ?', [slug]);
+  const b = await get<{ id: number; name: string; website: string; verification_status: string }>('SELECT * FROM brands WHERE slug = ?', [slug]);
   if (!b) notFound();
-  const products = listProducts({ brandSlug: slug, status: 'published' });
+  const products = await listProducts({ brandSlug: slug, status: 'published' });
   return (
     <>
       <Crumbs items={[{ label: 'হোম', href: '/' }, { label: 'পণ্য', href: '/products' }, { label: b.name }]} />

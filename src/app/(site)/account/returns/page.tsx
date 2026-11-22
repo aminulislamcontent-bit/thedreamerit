@@ -10,8 +10,8 @@ export default async function ReturnsPage({ searchParams }: { searchParams: Prom
   const sp = await searchParams;
   const user = await getCurrentUser();
   if (!user) redirect('/login?next=/account/returns');
-  const orders = all<{ id: number; order_number: string }>('SELECT id, order_number FROM orders WHERE user_id = ?', [user.id]);
-  const requests = all<{ id: number; order_id: number; reason: string; status: string }>('SELECT * FROM return_requests ORDER BY created_at DESC LIMIT 50');
+  const orders = await all<{ id: number; order_number: string }>('SELECT id, order_number FROM orders WHERE user_id = ?', [user.id]);
+  const requests = await all<{ id: number; order_id: number; reason: string; status: string }>('SELECT * FROM return_requests ORDER BY created_at DESC LIMIT 50');
   return (
     <><Crumbs items={[{ label: 'হোম', href: '/' }, { label: 'অ্যাকাউন্ট', href: '/account' }, { label: 'রিটার্ন' }]} /><PageNotices searchParams={sp} />
       <PageHead title="রিটার্ন অনুরোধ" subtitle="রিটার্ন অনুমোদনের পর স্টক ও কমিশন সংশোধন করা হয়।" />

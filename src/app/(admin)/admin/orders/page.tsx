@@ -6,14 +6,14 @@ import { Badge, Card, PageHead, Table, Stat } from '@/components/ui';
 export const dynamic = 'force-dynamic';
 
 export default async function AdminOrdersPage() {
-  const orders = listOrders();
-  const refunds = all<{ id: number; order_id: number; amount: number; status: string }>('SELECT * FROM refunds ORDER BY id DESC');
-  const returns = all<{ id: number; order_id: number; status: string; reason: string }>('SELECT * FROM return_requests ORDER BY id DESC');
-  const reconciliations = all<{ id: number; business_date: string; expected_amount: number; counted_amount: number; variance: number }>('SELECT * FROM cash_reconciliations ORDER BY id DESC');
+  const orders = await listOrders();
+  const refunds = await all<{ id: number; order_id: number; amount: number; status: string }>('SELECT * FROM refunds ORDER BY id DESC');
+  const returns = await all<{ id: number; order_id: number; status: string; reason: string }>('SELECT * FROM return_requests ORDER BY id DESC');
+  const reconciliations = await all<{ id: number; business_date: string; expected_amount: number; counted_amount: number; variance: number }>('SELECT * FROM cash_reconciliations ORDER BY id DESC');
   return (
     <>
       <PageHead title="অর্ডার, পেমেন্ট ও রিফান্ড" subtitle="বৈধ অর্ডার স্টেট মেশিন, সার্ভার-সাইড অথোরাইজেশন, যাচাইকৃত পেমেন্ট ইভেন্ট, রিটার্ন/রিফান্ড, ক্যাশ রিকনসিলিয়েশন ও অবস্থার ইতিহাস।" />
-      <div className="grid grid-4"><Stat label="মোট অর্ডার" value={orders.length} /><Stat label="যাচাইকৃত পেমেন্ট" value={all('SELECT * FROM payments').length} /><Stat label="রিফান্ড অনুরোধ" value={refunds.length} /><Stat label="রিটার্ন অনুরোধ" value={returns.length} /></div>
+      <div className="grid grid-4"><Stat label="মোট অর্ডার" value={orders.length} /><Stat label="যাচাইকৃত পেমেন্ট" value={await (await all('SELECT * FROM payments')).length} /><Stat label="রিফান্ড অনুরোধ" value={refunds.length} /><Stat label="রিটার্ন অনুরোধ" value={returns.length} /></div>
       <h2 style={{ marginTop: 22 }}>অর্ডার</h2>
       {orders.length ? <Table headers={['অর্ডার', 'গ্রাহক', 'চ্যানেল', 'অবস্থা', 'মোট', 'তারিখ', '']}>{orders.map((o) => <tr key={o.id}><td>{o.order_number}</td><td>{o.customer_name || '—'}</td><td>{o.channel}</td><td><Badge tone={o.status === 'paid' ? 'ok' : 'warn'}>{o.status}</Badge></td><td>৳ {(o.total_amount / 100).toFixed(2)}</td><td className="muted">{o.created_at}</td><td><Link className="btn btn-sm" href={`/admin/orders/${o.id}`}>খুলুন →</Link></td></tr>)}</Table> : <Card><p className="muted">কোনো অর্ডার নেই। অর্ডার শুধুমাত্র প্রকাশিত পণ্য ও যাচাইকৃত স্টক থেকে তৈরি হয়।</p></Card>}
       <div className="grid grid-2" style={{ marginTop: 24 }}>

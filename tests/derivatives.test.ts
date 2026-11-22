@@ -11,7 +11,8 @@ const uploadsDir = path.join(process.cwd(), 'uploads');
 const fixture = path.join(uploadsDir, `derivative-fixture-${process.pid}.png`);
 const generatedFiles = new Set<string>();
 
-test.after(() => {
+test.after(async () => {
+  await new Promise((r) => setTimeout(r, 50));
   fs.rmSync(fixture, { force: true });
   for (const file of generatedFiles) fs.rmSync(file, { force: true });
   for (const suffix of ['', '-shm', '-wal']) fs.rmSync(`${testDb}${suffix}`, { force: true });
@@ -19,20 +20,21 @@ test.after(() => {
 });
 
 test('approved licensed local image generates three deterministic WebP derivatives', async () => {
-  const { initializeDatabase, all, get, nowIso, run } = await import('../src/lib/server/database');
-  initializeDatabase();
+  const { initializeDatabase, all, get, run } = await import('../src/lib/server/database');
+  await initializeDatabase();
   fs.mkdirSync(uploadsDir, { recursive: true });
-  // A generated solid-colour fixture, not a product photograph and never published.
   await sharp({ create: { width: 1200, height: 800, channels: 3, background: { r: 20, g: 40, b: 60 } } }).png().toFile(fixture);
 
-  const product = get<{ id: number }>('SELECT id FROM products LIMIT 1')!;
+  const product = await get<{ id: number }>('SELECT id FROM products LIMIT 1');
+  assert.ok(product, 'expected product');
   const url = `/media/${path.basename(fixture)}`;
-  const stamp = nowIso();
-  const mediaId = Number(run(
+  const stamp = new Date().toISOString();
+  const ins = await run(
     `INSERT INTO product_media (product_id, kind, url, review_status, permission_status, created_at, updated_at)
      VALUES (?, 'image', ?, 'approved', 'granted', ?, ?)`,
     [product.id, url, stamp, stamp],
-  ).lastInsertRowid);
+  );
+  const mediaId = Number(ins.lastInsertRowid);
 
   const { generateDerivatives } = await import('../src/lib/server/derivatives');
   const first = await generateDerivatives();
@@ -40,7 +42,7 @@ test('approved licensed local image generates three deterministic WebP derivativ
   assert.equal(first.processed, 1);
   assert.equal(first.created, 3);
 
-  const rows = all<{ variant: string; file_name: string; url: string; width: number; height: number; checksum: string; mime_type: string }>(
+  const rows = await all<{ variant: string; file_name: string; url: string; width: number; height: number; checksum: string; mime_type: string }>(
     'SELECT * FROM media_derivatives WHERE media_id = ? ORDER BY variant', [mediaId],
   );
   assert.equal(rows.length, 3);
