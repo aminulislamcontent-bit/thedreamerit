@@ -9,11 +9,11 @@ export const dynamic = 'force-dynamic';
 
 export default async function InventoryPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
-  const balances = getBalances();
-  const low = lowStockItems();
-  const products = all<{ id: number; model_name: string; sku: string }>('SELECT id, model_name, sku FROM products ORDER BY model_name');
-  const warehouses = all<{ id: number; name: string }>('SELECT id, name FROM warehouses');
-  const pos = all<{ id: number; po_number: string }>('SELECT id, po_number FROM purchase_orders ORDER BY created_at DESC');
+  const balances = await getBalances();
+  const low = await lowStockItems();
+  const products = await all<{ id: number; model_name: string; sku: string }>('SELECT id, model_name, sku FROM products ORDER BY model_name');
+  const warehouses = await all<{ id: number; name: string }>('SELECT id, name FROM warehouses');
+  const pos = await all<{ id: number; po_number: string }>('SELECT id, po_number FROM purchase_orders ORDER BY created_at DESC');
   const units = balances.reduce((s, b) => s + Number(b.on_hand), 0);
   const reserved = balances.reduce((s, b) => s + Number(b.reserved), 0);
   return (
@@ -61,7 +61,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
       </Table> : <p className="muted">কোনো ব্যালেন্স নেই।</p>}
       <h2 style={{ marginTop: 24 }}>স্টক মুভমেন্ট হিস্টোরি</h2>
       <Table headers={['সময়', 'ধরন', 'পরিমাণ', 'রেফারেন্স', 'নোট']}>
-        {all<{ id: number; created_at: string; kind: string; quantity: number; reference_type: string; note: string }>('SELECT * FROM stock_movements ORDER BY created_at DESC LIMIT 50').map((m) => <tr key={m.id}><td className="muted">{m.created_at}</td><td>{m.kind}</td><td>{m.quantity}</td><td>{m.reference_type}</td><td className="muted">{m.note}</td></tr>)}
+        {await (await all<{ id: number; created_at: string; kind: string; quantity: number; reference_type: string; note: string }>('SELECT * FROM stock_movements ORDER BY created_at DESC LIMIT 50')).map((m) => <tr key={m.id}><td className="muted">{m.created_at}</td><td>{m.kind}</td><td>{m.quantity}</td><td>{m.reference_type}</td><td className="muted">{m.note}</td></tr>)}
       </Table>
       <p className="muted" style={{ marginTop: 12 }}>ইনভেন্টরি ভ্যালুয়েশন ও সিরিয়াল/ওয়ারেন্টি ট্র্যাকিং: <Link href="/admin/operations">অপারেশনস →</Link></p>
     </>

@@ -9,8 +9,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function MediaAdminPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
-  const products = all<{ id: number; model_name: string }>('SELECT id, model_name FROM products ORDER BY model_name');
-  const queue = mediaQueue();
+  const products = await all<{ id: number; model_name: string }>('SELECT id, model_name FROM products ORDER BY model_name');
+  const queue = await mediaQueue();
   const options = products.map((p) => <option key={p.id} value={p.id}>{p.model_name}</option>);
   return (
     <>

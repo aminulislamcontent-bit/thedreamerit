@@ -70,7 +70,7 @@ export async function recordAttendanceAction(fd: FormData): Promise<void> {
   const employeeId = intField(fd, 'employeeId');
   const date = field(fd, 'date') || nowIso().slice(0, 10);
   if (!employeeId) fail('/admin/employees', 'Employee required.');
-  run(`INSERT INTO attendance (employee_id, business_date, status, check_in) VALUES (?, ?, 'present', ?)
+  await run(`INSERT INTO attendance (employee_id, business_date, status, check_in) VALUES (?, ?, 'present', ?)
     ON CONFLICT(employee_id, business_date) DO UPDATE SET status = 'present', check_in = excluded.check_in`,
     [employeeId, date, nowIso().slice(11, 16)]);
   void user;
@@ -82,7 +82,7 @@ export async function createEmployeeAction(fd: FormData): Promise<void> {
   await guard(fd, 'employees.edit');
   const code = field(fd, 'employeeCode');
   if (!code) fail('/admin/employees', 'Employee code required.');
-  run('INSERT INTO employees (employee_code, department, designation, branch_id, joined_at, status) VALUES (?, ?, ?, ?, ?, ?)',
+  await run('INSERT INTO employees (employee_code, department, designation, branch_id, joined_at, status) VALUES (?, ?, ?, ?, ?, ?)',
     [code, field(fd, 'department'), field(fd, 'designation'), intField(fd, 'branchId') || 1, nowIso().slice(0, 10), 'active']);
   revalidatePath('/admin/employees');
   done('/admin/employees', 'Employee profile created.');
@@ -94,10 +94,10 @@ export async function updateCommissionRuleAction(fd: FormData): Promise<void> {
   if (!['line_margin', 'revenue', 'flat_per_unit'].includes(basis)) fail('/admin/employees', 'Invalid commission basis.');
   const id = intField(fd, 'ruleId');
   if (id) {
-    run('UPDATE commission_rules SET name = ?, basis = ?, rate_bps = ?, flat_amount = ?, min_margin_bps = ? WHERE id = ?',
+    await run('UPDATE commission_rules SET name = ?, basis = ?, rate_bps = ?, flat_amount = ?, min_margin_bps = ? WHERE id = ?',
       [field(fd, 'name'), basis, intField(fd, 'rateBps'), Math.round(Number(field(fd, 'flatBdt') || 0) * 100), intField(fd, 'minMarginBps'), id]);
   } else {
-    run('INSERT INTO commission_rules (name, basis, rate_bps, flat_amount, min_margin_bps, applies_to_returns, active, created_at) VALUES (?, ?, ?, ?, ?, 0, 1, ?)',
+    await run('INSERT INTO commission_rules (name, basis, rate_bps, flat_amount, min_margin_bps, applies_to_returns, active, created_at) VALUES (?, ?, ?, ?, ?, 0, 1, ?)',
       [field(fd, 'name'), basis, intField(fd, 'rateBps'), Math.round(Number(field(fd, 'flatBdt') || 0) * 100), intField(fd, 'minMarginBps'), nowIso()]);
   }
   revalidatePath('/admin/employees');
@@ -108,10 +108,10 @@ export async function exportPayrollAction(fd: FormData): Promise<void> {
   const user = await guard(fd, 'commission.manage');
   const period = field(fd, 'period');
   if (!period) fail('/admin/employees', 'Period required (YYYY-MM).');
-  const rows = all(
+  const rows = await all(
     `SELECT e.employee_code, SUM(cr.commission_amount) AS total FROM commission_records cr JOIN employees e ON e.id = cr.employee_id
      WHERE cr.status = 'accrued' AND substr(cr.created_at, 1, 7) = ? GROUP BY e.employee_code`, [period]);
-  run('INSERT INTO payroll_exports (period, payload_json, created_by, created_at) VALUES (?, ?, ?, ?)', [period, JSON.stringify(rows), user.id, nowIso()]);
+  await run('INSERT INTO payroll_exports (period, payload_json, created_by, created_at) VALUES (?, ?, ?, ?)', [period, JSON.stringify(rows), user.id, nowIso()]);
   revalidatePath('/admin/employees');
   done('/admin/employees', `Payroll export for ${period} generated from accrued commission records.`);
 }

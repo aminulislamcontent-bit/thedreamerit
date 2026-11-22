@@ -9,10 +9,10 @@ export const dynamic = 'force-dynamic';
 
 export default async function SocialPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
-  const channels = all<{ platform: string; status: string; credential_ref: string }>('SELECT * FROM social_channels');
-  const drafts = all<{ id: number; kind: string; locale: string }>("SELECT id, kind, locale FROM content_drafts WHERE status = 'approved'");
-  const jobs = listJobs();
-  const campaigns = all<{ id: number; name: string; status: string }>('SELECT * FROM campaigns');
+  const channels = await all<{ platform: string; status: string; credential_ref: string }>('SELECT * FROM social_channels');
+  const drafts = await all<{ id: number; kind: string; locale: string }>("SELECT id, kind, locale FROM content_drafts WHERE status = 'approved'");
+  const jobs = await listJobs();
+  const campaigns = await all<{ id: number; name: string; status: string }>('SELECT * FROM campaigns');
   return (
     <>
       <PageNotices searchParams={sp} />

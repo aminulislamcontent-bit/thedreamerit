@@ -28,14 +28,14 @@ export async function createProductAction(fd: FormData): Promise<void> {
   const sourceUrl = field(fd, 'sourceUrl');
   const isDemo = boolField(fd, 'isDemo');
   if (!modelName || !sku || !brandId || !categoryId) fail('/admin/products', 'Model name, SKU, brand and category are required.');
-  if (get('SELECT id FROM products WHERE sku = ?', [sku])) fail('/admin/products', 'That SKU already exists (duplicate detection).');
+  if (await get('SELECT id FROM products WHERE sku = ?', [sku])) fail('/admin/products', 'That SKU already exists (duplicate detection).');
   const slug = slugify(modelName);
-  if (get('SELECT id FROM products WHERE slug = ?', [slug])) fail('/admin/products', 'That model name produces a duplicate slug.');
-  const result = run(`INSERT INTO products (slug, brand_id, category_id, model_name, sku, mpn, status, is_demo, verification_status, source_url, source_name, created_by, created_at, updated_at)
+  if (await get('SELECT id FROM products WHERE slug = ?', [slug])) fail('/admin/products', 'That model name produces a duplicate slug.');
+  const result = await run(`INSERT INTO products (slug, brand_id, category_id, model_name, sku, mpn, status, is_demo, verification_status, source_url, source_name, created_by, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, 'draft', ?, 'unverified', ?, ?, ?, ?, ?)`,
     [slug, brandId, categoryId, modelName, sku, mpn, isDemo ? 1 : 0, sourceUrl, sourceName, user.id, nowIso(), nowIso()]);
   const id = Number(result.lastInsertRowid);
-  run('INSERT INTO product_seo (product_id, canonical_path, indexable) VALUES (?, ?, 0)', [id, `/products/${slug}`]);
+  await run('INSERT INTO product_seo (product_id, canonical_path, indexable) VALUES (?, ?, 0)', [id, `/products/${slug}`]);
   revalidatePath('/admin/products');
   done(`/admin/products/${id}`, isDemo ? 'Demonstration record created (excluded from live catalogue).' : 'Draft created. Add verified specs, licensed media, price source and SEO before publishing.');
 }
@@ -87,7 +87,7 @@ export async function saveSeoAction(fd: FormData): Promise<void> {
   const description = field(fd, 'metaDescription');
   const canonicalPath = field(fd, 'canonicalPath');
   const check = validateMetadata({ title, description, canonicalPath });
-  run(`INSERT INTO product_seo (product_id, title, meta_description, canonical_path, indexable, reviewed_at) VALUES (?, ?, ?, ?, ?, ?)
+  await run(`INSERT INTO product_seo (product_id, title, meta_description, canonical_path, indexable, reviewed_at) VALUES (?, ?, ?, ?, ?, ?)
     ON CONFLICT(product_id) DO UPDATE SET title = excluded.title, meta_description = excluded.meta_description,
     canonical_path = excluded.canonical_path, indexable = excluded.indexable, reviewed_at = excluded.reviewed_at`,
     [id, title, description, canonicalPath, boolField(fd, 'indexable') ? 1 : 0, check.valid ? nowIso() : null]);
@@ -134,7 +134,7 @@ export async function addBrandAction(fd: FormData): Promise<void> {
   const name = field(fd, 'name');
   if (!name) fail('/admin/products', 'Brand name required.');
   const slug = slugify(name);
-  if (!get('SELECT id FROM brands WHERE slug = ?', [slug])) run('INSERT INTO brands (slug, name, verification_status) VALUES (?, ?, ?)', [slug, name, 'unverified']);
+  if (!await get('SELECT id FROM brands WHERE slug = ?', [slug])) await run('INSERT INTO brands (slug, name, verification_status) VALUES (?, ?, ?)', [slug, name, 'unverified']);
   revalidatePath('/admin/products');
   done('/admin/products', `Brand "${name}" added as unverified taxonomy.`);
 }
@@ -145,7 +145,7 @@ export async function verifyProductAction(fd: FormData): Promise<void> {
   const sourceUrl = field(fd, 'sourceUrl');
   const sourceName = field(fd, 'sourceName');
   if (!sourceUrl || !sourceName) fail(`/admin/products/${id}`, 'A named manufacturer/distributor source URL is required for verification.');
-  run("UPDATE products SET verification_status = 'verified', source_url = ?, source_name = ?, verified_by = ?, verified_at = ?, updated_at = ? WHERE id = ?",
+  await run("UPDATE products SET verification_status = 'verified', source_url = ?, source_name = ?, verified_by = ?, verified_at = ?, updated_at = ? WHERE id = ?",
     [sourceUrl, sourceName, user.id, nowIso(), nowIso(), id]);
   revalidatePath(`/admin/products/${id}`);
   done(`/admin/products/${id}`, 'Model verification recorded.');
@@ -154,15 +154,15 @@ export async function verifyProductAction(fd: FormData): Promise<void> {
 export async function seedSpecTemplateAction(fd: FormData): Promise<void> {
   await guard(fd, 'catalogue.verify');
   const id = intField(fd, 'productId');
-  const template = get<{ spec_template: string }>('SELECT c.spec_template FROM products p JOIN categories c ON c.id = p.category_id WHERE p.id = ?', [id]);
+  const template = await get<{ spec_template: string }>('SELECT c.spec_template FROM products p JOIN categories c ON c.id = p.category_id WHERE p.id = ?', [id]);
   const required: Record<string, string[]> = {
     laptop: ['Processor and generation', 'Core and thread count', 'RAM capacity and type', 'Storage capacity and type', 'Graphics processor', 'Display size and resolution', 'Refresh rate', 'Operating system', 'Battery information', 'Ports and connectivity', 'Dimensions and weight', 'Warranty and included accessories'],
     desktop: ['CPU', 'Motherboard', 'RAM', 'Storage', 'Graphics card', 'Power supply', 'Cooling', 'Case', 'Operating system', 'Upgrade options', 'Component compatibility'],
   };
   const fields = required[template?.spec_template ?? ''] ?? [];
-  const existing = new Set(all<{ spec_key: string }>('SELECT spec_key FROM product_specs WHERE product_id = ?', [id]).map((s) => s.spec_key));
+  const existing = new Set(await (await all<{ spec_key: string }>('SELECT spec_key FROM product_specs WHERE product_id = ?', [id])).map((s) => s.spec_key));
   for (const key of fields) {
-    if (!existing.has(key)) run('INSERT INTO product_specs (product_id, group_name, spec_key, spec_value, verified, source_url) VALUES (?, ?, ?, ?, 0, ?)', [id, 'Required template', key, '', '']);
+    if (!existing.has(key)) await run('INSERT INTO product_specs (product_id, group_name, spec_key, spec_value, verified, source_url) VALUES (?, ?, ?, ?, 0, ?)', [id, 'Required template', key, '', '']);
   }
   revalidatePath(`/admin/products/${id}`);
   done(`/admin/products/${id}`, `${fields.length} category-specific specification rows created as unverified placeholders.`);
@@ -174,10 +174,10 @@ export async function createVariantAction(fd: FormData): Promise<void> {
   const sku = field(fd, 'sku');
   const name = field(fd, 'name');
   if (!productId || !sku || !name) fail(`/admin/products/${productId}`, 'Variant name and SKU are required.');
-  if (get('SELECT id FROM product_variants WHERE sku = ?', [sku])) fail(`/admin/products/${productId}`, 'Duplicate variant SKU.');
-  run(`INSERT INTO product_variants (product_id, sku, name, attributes_json, barcode, status, created_at)
+  if (await get('SELECT id FROM product_variants WHERE sku = ?', [sku])) fail(`/admin/products/${productId}`, 'Duplicate variant SKU.');
+  await run(`INSERT INTO product_variants (product_id, sku, name, attributes_json, barcode, status, created_at)
     VALUES (?, ?, ?, ?, ?, 'draft', ?)`, [productId, sku, name, field(fd, 'attributes') || '{}', field(fd, 'barcode'), nowIso()]);
-  run('UPDATE products SET updated_at = ? WHERE id = ?', [nowIso(), productId]);
+  await run('UPDATE products SET updated_at = ? WHERE id = ?', [nowIso(), productId]);
   void user;
   revalidatePath(`/admin/products/${productId}`);
   done(`/admin/products/${productId}`, 'Variant created. Variants never count as separate models.');
@@ -188,11 +188,11 @@ export async function setMinimumPriceAction(fd: FormData): Promise<void> {
   const productId = intField(fd, 'productId');
   const amount = Math.round(Number(field(fd, 'minimumBdt')) * 100);
   if (!Number.isFinite(amount) || amount <= 0) fail(`/admin/products/${productId}`, 'Enter a valid minimum price.');
-  const current = get<{ price_amount: number | null }>('SELECT price_amount FROM products WHERE id = ?', [productId]);
+  const current = await get<{ price_amount: number | null }>('SELECT price_amount FROM products WHERE id = ?', [productId]);
   if (current?.price_amount !== null && current?.price_amount !== undefined && current.price_amount < amount) {
     fail(`/admin/products/${productId}`, 'The current verified price is already below this floor; adjust the price first.');
   }
-  run('UPDATE products SET minimum_selling_amount = ?, updated_at = ? WHERE id = ?', [amount, nowIso(), productId]);
+  await run('UPDATE products SET minimum_selling_amount = ?, updated_at = ? WHERE id = ?', [amount, nowIso(), productId]);
   void user;
   revalidatePath(`/admin/products/${productId}`);
   done(`/admin/products/${productId}`, 'Authorized minimum selling price saved; below-floor discounts now require approval.');
@@ -202,8 +202,8 @@ export async function archiveProductAction(fd: FormData): Promise<void> {
   const user = await guard(fd, 'catalogue.edit');
   const productId = intField(fd, 'productId');
   const restore = boolField(fd, 'restore');
-  run('UPDATE products SET status = ?, updated_at = ? WHERE id = ?', [restore ? 'draft' : 'archived', nowIso(), productId]);
-  run('INSERT INTO product_revisions (product_id, changed_by, change_json, created_at) VALUES (?, ?, ?, ?)',
+  await run('UPDATE products SET status = ?, updated_at = ? WHERE id = ?', [restore ? 'draft' : 'archived', nowIso(), productId]);
+  await run('INSERT INTO product_revisions (product_id, changed_by, change_json, created_at) VALUES (?, ?, ?, ?)',
     [productId, user.id, JSON.stringify({ status: restore ? 'restored' : 'archived' }), nowIso()]);
   revalidatePath('/admin/products');
   done(`/admin/products/${productId}`, restore ? 'Product restored to draft.' : 'Product archived (restorable).');

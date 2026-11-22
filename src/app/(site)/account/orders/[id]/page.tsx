@@ -11,12 +11,12 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   if (!user) redirect('/login');
   const { id } = await params;
   const orderId = Number.parseInt(id, 10);
-  const order = get<{ id: number; order_number: string; status: string; total_amount: number; created_at: string; user_id: number | null }>('SELECT * FROM orders WHERE id = ?', [orderId]);
+  const order = await get<{ id: number; order_number: string; status: string; total_amount: number; created_at: string; user_id: number | null }>('SELECT * FROM orders WHERE id = ?', [orderId]);
   if (!order || order.user_id !== user.id) notFound();
-  const items = all<{ model_name: string; quantity: number; unit_price: number; line_total: number }>(
+  const items = await all<{ model_name: string; quantity: number; unit_price: number; line_total: number }>(
     'SELECT oi.*, p.model_name FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ?', [orderId]);
-  const payments = all<{ amount: number; status: string; method: string; created_at: string }>('SELECT * FROM payments WHERE order_id = ?', [orderId]);
-  const tracking = all<{ status: string; note: string; created_at: string }>('SELECT * FROM delivery_tracking WHERE order_id = ? ORDER BY created_at', [orderId]);
+  const payments = await all<{ amount: number; status: string; method: string; created_at: string }>('SELECT * FROM payments WHERE order_id = ?', [orderId]);
+  const tracking = await all<{ status: string; note: string; created_at: string }>('SELECT * FROM delivery_tracking WHERE order_id = ? ORDER BY created_at', [orderId]);
   return (
     <>
       <Crumbs items={[{ label: 'হোম', href: '/' }, { label: 'অ্যাকাউন্ট', href: '/account' }, { label: 'অর্ডার', href: '/account/orders' }, { label: order.order_number }]} />

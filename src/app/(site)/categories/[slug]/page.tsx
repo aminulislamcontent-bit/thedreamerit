@@ -9,17 +9,17 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const c = get<{ name_en: string }>('SELECT name_en FROM categories WHERE slug = ?', [slug]);
+  const c = await get<{ name_en: string }>('SELECT name_en FROM categories WHERE slug = ?', [slug]);
   return { title: c ? `${c.name_en} — পণ্য ক্যাটাগরি` : 'ক্যাটাগরি' };
 }
 
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const c = get<{ id: number; name_en: string; group_name: string; is_active: number; spec_template: SpecTemplate; description: string }>(
+  const c = await get<{ id: number; name_en: string; group_name: string; is_active: number; spec_template: SpecTemplate; description: string }>(
     'SELECT * FROM categories WHERE slug = ?', [slug]);
   if (!c) notFound();
-  const verified = scalar("SELECT COUNT(*) AS n FROM products WHERE category_id = ? AND verification_status = 'verified' AND is_demo = 0", [c.id]);
-  const published = listProducts({ categorySlug: slug, status: 'published' });
+  const verified = await scalar("SELECT COUNT(*) AS n FROM products WHERE category_id = ? AND verification_status = 'verified' AND is_demo = 0", [c.id]);
+  const published = await listProducts({ categorySlug: slug, status: 'published' });
   return (
     <>
       <Crumbs items={[{ label: 'হোম', href: '/' }, { label: 'ক্যাটাগরি', href: '/categories' }, { label: c.name_en }]} />

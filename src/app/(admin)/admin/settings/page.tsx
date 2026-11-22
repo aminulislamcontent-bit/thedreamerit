@@ -15,10 +15,10 @@ const ENV_KEYS = [
 
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
-  const integrations = all<{ name: string; status: string; detail: string }>('SELECT * FROM integration_status ORDER BY name');
-  const categories = scalar('SELECT COUNT(*) AS n FROM categories');
-  const active = scalar('SELECT COUNT(*) AS n FROM categories WHERE is_active = 1');
-  const published = scalar("SELECT COUNT(*) AS n FROM products WHERE status = 'published' AND is_demo = 0");
+  const integrations = await all<{ name: string; status: string; detail: string }>('SELECT * FROM integration_status ORDER BY name');
+  const categories = await scalar('SELECT COUNT(*) AS n FROM categories');
+  const active = await scalar('SELECT COUNT(*) AS n FROM categories WHERE is_active = 1');
+  const published = await scalar("SELECT COUNT(*) AS n FROM products WHERE status = 'published' AND is_demo = 0");
   return (
     <>
       <PageNotices searchParams={sp} />

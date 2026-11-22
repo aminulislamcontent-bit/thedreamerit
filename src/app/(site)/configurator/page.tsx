@@ -13,8 +13,8 @@ const RULES = [
   'মাদারবোর্ড ফর্ম-ফ্যাক্টর কেসের সাথে সামঞ্জস্যপূর্ণ',
 ];
 
-export default function ConfiguratorPage() {
-  const verifiedComponents = scalar("SELECT COUNT(*) AS n FROM products p JOIN categories c ON c.id = p.category_id WHERE c.group_name = 'Core computer components' AND p.verification_status = 'verified' AND p.is_demo = 0");
+export default async function ConfiguratorPage() {
+  const verifiedComponents = await scalar("SELECT COUNT(*) AS n FROM products p JOIN categories c ON c.id = p.category_id WHERE c.group_name = 'Core computer components' AND p.verification_status = 'verified' AND p.is_demo = 0");
   return (
     <><Crumbs items={[{ label: 'হোম', href: '/' }, { label: 'পিসি কম্প্যাটিবিলিটি চেক' }]} />
       <PageHead title="পিসি কম্প্যাটিবিলিটি চেক" subtitle="যাচাইকৃত কম্পোনেন্ট ডেটা থেকে সকেট, RAM, PSU, GPU ও কেসের সামঞ্জস্যতা যাচাই করা হয়।" />

@@ -19,7 +19,7 @@ type Props = { params: Promise<{ slug: string }>; searchParams: Promise<Record<s
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const p = getProductBySlug(slug);
+  const p = await getProductBySlug(slug);
   if (!p) return { title: 'পণ্য পাওয়া যায়নি' };
   const canonical = p.seo_canonical || `/products/${p.slug}`;
   return {
@@ -40,31 +40,31 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ProductDetailPage({ params, searchParams }: Props) {
   const { slug } = await params;
   const sp = await searchParams;
-  const p = getProductBySlug(slug);
+  const p = await getProductBySlug(slug);
   if (!p) notFound();
   const preview = sp.preview === '1';
   const user = await getCurrentUser();
   const mayPreview = !!user && (user.permissions.includes('catalogue.view') || user.permissions.includes('catalogue.publish'));
   if (p.status !== 'published' && !(preview && mayPreview)) notFound();
 
-  const media = getMedia(p.id);
+  const media = await getMedia(p.id);
   const approvedMedia = media.filter((m) => m.reviewStatus === 'approved' && m.permissionStatus === 'granted');
-  const specs = getSpecs(p.id);
+  const specs = await getSpecs(p.id);
   const verifiedSpecs = specs.filter((s) => s.verified && s.source_url);
-  const mediaState = mediaCompletenessFor(p.id);
-  const inventoryRows = scalar('SELECT COUNT(*) AS n FROM inventory_balances WHERE product_id = ?', [p.id]);
-  const available = inventoryRows > 0 ? availableFor(p.id) : null;
+  const mediaState = await mediaCompletenessFor(p.id);
+  const inventoryRows = await scalar('SELECT COUNT(*) AS n FROM inventory_balances WHERE product_id = ?', [p.id]);
+  const available = inventoryRows > 0 ? await availableFor(p.id, 0) : null;
   const price = assessPrice({ sellingAmount: p.price_amount, minimumSellingAmount: p.minimum_selling_amount, unitCost: null, priceVerified: !!p.price_verified, priceSourceUrl: p.price_source_url });
-  const structured = productStructuredData(p.id);
+  const structured = await productStructuredData(p.id);
   const nonce = (await headers()).get('x-nonce') ?? undefined;
   const requiredSpecs = SPEC_TEMPLATES[p.spec_template] ?? [];
-  const reviews = all<{ id: number; rating: number; body: string; created_at: string }>(
+  const reviews = await all<{ id: number; rating: number; body: string; created_at: string }>(
     "SELECT id, rating, body, created_at FROM reviews WHERE product_id = ? AND verified_purchase = 1 AND moderation_status = 'approved'", [p.id]);
-  const questions = all<{ id: number; question: string; answer: string }>("SELECT id, question, answer FROM product_questions WHERE product_id = ? AND status = 'answered'", [p.id]);
-  const related = all<{ slug: string; model_name: string }>(
+  const questions = await all<{ id: number; question: string; answer: string }>("SELECT id, question, answer FROM product_questions WHERE product_id = ? AND status = 'answered'", [p.id]);
+  const related = await all<{ slug: string; model_name: string }>(
     `SELECT p.slug, p.model_name FROM product_relations r JOIN products p ON p.id = r.related_product_id WHERE r.product_id = ? AND p.status = 'published'`, [p.id]);
-  const variants = all<{ id: number; name: string; sku: string; price_amount: number | null; price_verified: number; status: string }>('SELECT * FROM product_variants WHERE product_id = ?', [p.id]);
-  const branchStock = all<{ branch: string; available: number }>(
+  const variants = await all<{ id: number; name: string; sku: string; price_amount: number | null; price_verified: number; status: string }>('SELECT * FROM product_variants WHERE product_id = ?', [p.id]);
+  const branchStock = await all<{ branch: string; available: number }>(
     `SELECT b.name AS branch, (ib.on_hand - ib.reserved) AS available FROM inventory_balances ib
      JOIN warehouses w ON w.id = ib.warehouse_id JOIN branches b ON b.id = w.branch_id WHERE ib.product_id = ?`, [p.id]);
 

@@ -9,8 +9,16 @@ export const dynamic = 'force-dynamic';
 export default async function ComparePage({ searchParams }: { searchParams: Promise<{ ids?: string }> }) {
   const { ids } = await searchParams;
   const selected = (ids || '').split(',').map((v) => Number.parseInt(v, 10)).filter((n) => Number.isInteger(n) && n > 0).slice(0, 4);
-  const products = selected.map((id) => getProductById(id)).filter((p) => !!p && p.status === 'published');
-  const specKeys = [...new Set(products.flatMap((p) => all<{ spec_key: string }>('SELECT spec_key FROM product_specs WHERE product_id = ? AND verified = 1', [p!.id]).map((s) => s.spec_key)))];
+  const products = (await Promise.all(selected.map((id) => getProductById(id)))).filter((p): p is NonNullable<Awaited<ReturnType<typeof getProductById>>> => !!p && p.status === 'published');
+  const specRows = await Promise.all(products.map((p) => all<{ spec_key: string }>('SELECT spec_key FROM product_specs WHERE product_id = ? AND verified = 1', [p!.id])));
+  const specKeys = [...new Set(specRows.flatMap((rows) => rows.map((s) => s.spec_key)))];
+  const specValueMap = new Map<string, { spec_value: string; unit: string } | null>();
+  for (const p of products) {
+    for (const key of specKeys) {
+      const rows = await all<{ spec_value: string; unit: string }>('SELECT spec_value, unit FROM product_specs WHERE product_id = ? AND spec_key = ? AND verified = 1 AND source_url <> ""', [p!.id, key]);
+      specValueMap.set(`${p!.id}:${key}`, rows[0] ?? null);
+    }
+  }
   return (
     <>
       <Crumbs items={[{ label: 'হোম', href: '/' }, { label: 'পণ্য তুলনা' }]} />
@@ -25,7 +33,7 @@ export default async function ComparePage({ searchParams }: { searchParams: Prom
           <tr><td>মডেল যাচাই</td>{products.map((p) => <td key={p!.id}><Badge tone={p!.verification_status === 'verified' ? 'ok' : 'warn'}>{p!.verification_status}</Badge></td>)}</tr>
           {specKeys.map((key) => (
             <tr key={key}><td>{key}</td>{products.map((p) => {
-              const s = all<{ spec_value: string; unit: string }>('SELECT spec_value, unit FROM product_specs WHERE product_id = ? AND spec_key = ? AND verified = 1 AND source_url <> ""', [p!.id, key])[0];
+              const s = specValueMap.get(`${p!.id}:${key}`);
               return <td key={p!.id}>{s ? `${s.spec_value}${s.unit ? ` ${s.unit}` : ''}` : <span className="muted">যাচাইকৃত তথ্য নেই</span>}</td>;
             })}</tr>
           ))}

@@ -20,16 +20,16 @@ export async function GET(_request: Request, { params }: { params: Promise<{ fil
   if (!/^[a-zA-Z0-9._-]+$/.test(file)) return new NextResponse('Invalid file name', { status: 400 });
   const url = `/media/${file}`;
 
-  let approval = get<MediaApproval>(
+  let approval = await get<MediaApproval>(
     'SELECT review_status, permission_status FROM product_media WHERE url = ? LIMIT 1', [url],
   );
   let derivativeMime: string | null = null;
   if (!approval) {
-    const derivative = get<{ media_id: number; mime_type: string }>(
+    const derivative = await get<{ media_id: number; mime_type: string }>(
       'SELECT media_id, mime_type FROM media_derivatives WHERE url = ? LIMIT 1', [url],
     );
     if (derivative) {
-      approval = get<MediaApproval>(
+      approval = await get<MediaApproval>(
         'SELECT review_status, permission_status FROM product_media WHERE id = ? LIMIT 1', [derivative.media_id],
       );
       derivativeMime = derivative.mime_type;

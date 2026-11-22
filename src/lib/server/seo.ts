@@ -11,8 +11,8 @@ export function siteUrl(): string {
   return (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '');
 }
 
-export function sitemapXml(): string {
-  const products = all<{ canonical_path: string; updated_at: string; status: string; indexable: number }>(
+export async function sitemapXml(): Promise<string> {
+  const products = await all<{ canonical_path: string; updated_at: string; status: string; indexable: number }>(
     `SELECT COALESCE(s.canonical_path, '/products/' || p.slug) AS canonical_path, p.updated_at, p.status, COALESCE(s.indexable,0) AS indexable
      FROM products p LEFT JOIN product_seo s ON s.product_id = p.id`);
   const entries = buildSitemapEntries(products.map((p) => ({ canonicalPath: p.canonical_path, updatedAt: p.updated_at, published: p.status === 'published', indexable: !!p.indexable })), STATIC_PATHS, siteUrl());
@@ -24,16 +24,17 @@ export function robotsTxt(): string {
 }
 
 /** Structured data for a published product, using only verified fields. */
-export function productStructuredData(productId: number): Record<string, unknown> | null {
-  const p = get<{ slug: string; model_name: string; brand_name: string; sku: string; mpn: string; overview: string; price_amount: number | null; price_verified: number; price_source_url: string; category_name: string }>(
+export async function productStructuredData(productId: number): Promise<Record<string, unknown> | null> {
+  const p = await get<{ slug: string; model_name: string; brand_name: string; sku: string; mpn: string; overview: string; price_amount: number | null; price_verified: number; price_source_url: string; category_name: string }>(
     `SELECT p.*, b.name AS brand_name, c.name_en AS category_name FROM products p
      JOIN brands b ON b.id = p.brand_id JOIN categories c ON c.id = p.category_id WHERE p.id = ?`, [productId]);
   if (!p) return null;
-  const images = getMedia(productId).filter((m) => m.kind === 'image' && m.reviewStatus === 'approved' && m.permissionStatus === 'granted').map((m) => `${siteUrl()}${m.url}`);
-  const stockRows = Number((get<{ n: number }>('SELECT COUNT(*) AS n FROM inventory_balances WHERE product_id = ?', [productId])?.n ?? 0));
-  const available = Number((get<{ n: number }>('SELECT COALESCE(SUM(on_hand - reserved),0) AS n FROM inventory_balances WHERE product_id = ?', [productId])?.n ?? 0));
+  const media = await getMedia(productId);
+  const images = media.filter((m) => m.kind === 'image' && m.reviewStatus === 'approved' && m.permissionStatus === 'granted').map((m) => `${siteUrl()}${m.url}`);
+  const stockRows = Number(((await get<{ n: number }>('SELECT COUNT(*) AS n FROM inventory_balances WHERE product_id = ?', [productId]))?.n ?? 0));
+  const available = Number(((await get<{ n: number }>('SELECT COALESCE(SUM(on_hand - reserved),0) AS n FROM inventory_balances WHERE product_id = ?', [productId]))?.n ?? 0));
   // Only verified-purchase, approved reviews are used. There are none by default.
-  const reviews = all<{ rating: number; body: string; author: string }>(
+  const reviews = await all<{ rating: number; body: string; author: string }>(
     `SELECT r.rating, r.body, u.name AS author FROM reviews r JOIN users u ON u.id = r.user_id
      WHERE r.product_id = ? AND r.verified_purchase = 1 AND r.moderation_status = 'approved'`, [productId]);
   const data: SeoProduct = {
@@ -53,8 +54,8 @@ export function productStructuredData(productId: number): Record<string, unknown
   return buildProductStructuredData(data);
 }
 
-export function runSeoChecks(): { checked: number; failures: number } {
-  const products = all<{ id: number; slug: string; status: string; title: string; description: string; canonical_path: string }>(
+export async function runSeoChecks(): Promise<{ checked: number; failures: number }> {
+  const products = await all<{ id: number; slug: string; status: string; title: string; description: string; canonical_path: string }>(
     `SELECT p.id, p.slug, p.status, COALESCE(s.title,'') AS title, COALESCE(s.meta_description,'') AS description,
       COALESCE(s.canonical_path,'') AS canonical_path FROM products p LEFT JOIN product_seo s ON s.product_id = p.id`);
   let checked = 0;
@@ -62,17 +63,18 @@ export function runSeoChecks(): { checked: number; failures: number } {
   for (const p of products) {
     const result = validateMetadata({ title: p.title, description: p.description, canonicalPath: p.canonical_path });
     const status = result.valid ? 'pass' : 'fail';
-    run('INSERT INTO seo_checks (entity_type, entity_id, check_name, status, detail, checked_at) VALUES (?, ?, ?, ?, ?, ?)',
+    await run('INSERT INTO seo_checks (entity_type, entity_id, check_name, status, detail, checked_at) VALUES (?, ?, ?, ?, ?, ?)',
       ['product', String(p.id), 'metadata_validation', status, result.blockers.join(' ') || 'Metadata valid', nowIso()]);
     checked++;
     if (!result.valid) failures++;
-    const specCount = getSpecs(p.id).filter((s) => s.verified).length;
-    run('INSERT INTO seo_checks (entity_type, entity_id, check_name, status, detail, checked_at) VALUES (?, ?, ?, ?, ?, ?)',
+    const specs = await getSpecs(p.id);
+    const specCount = specs.filter((s) => s.verified).length;
+    await run('INSERT INTO seo_checks (entity_type, entity_id, check_name, status, detail, checked_at) VALUES (?, ?, ?, ?, ?, ?)',
       ['product', String(p.id), 'structured_data_specs', specCount >= 5 ? 'pass' : 'warning', `${specCount} verified specifications`, nowIso()]);
   }
   const duplicates = findDuplicateContent(products.map((p) => ({ id: String(p.id), title: p.title, description: p.description })));
   for (const d of duplicates) {
-    run('INSERT INTO seo_checks (entity_type, entity_id, check_name, status, detail, checked_at) VALUES (?, ?, ?, ?, ?, ?)',
+    await run('INSERT INTO seo_checks (entity_type, entity_id, check_name, status, detail, checked_at) VALUES (?, ?, ?, ?, ?, ?)',
       ['catalogue', '0', 'duplicate_content', 'fail', d, nowIso()]);
     failures++;
   }
@@ -80,16 +82,16 @@ export function runSeoChecks(): { checked: number; failures: number } {
 }
 
 /** Internal link integrity: verifies that referenced product/category paths exist. */
-export function checkInternalLinks(): { checked: number; broken: string[] } {
-  const products = all<{ slug: string }>('SELECT slug FROM products');
-  const categories = all<{ slug: string }>('SELECT slug FROM categories');
+export async function checkInternalLinks(): Promise<{ checked: number; broken: string[] }> {
+  const products = await all<{ slug: string }>('SELECT slug FROM products');
+  const categories = await all<{ slug: string }>('SELECT slug FROM categories');
   const known = new Set([...STATIC_PATHS, ...products.map((p) => `/products/${p.slug}`), ...categories.map((c) => `/categories/${c.slug}`)]);
-  const referenced = all<{ canonical_path: string }>('SELECT canonical_path FROM product_seo');
+  const referenced = await all<{ canonical_path: string }>('SELECT canonical_path FROM product_seo');
   const broken: string[] = [];
   for (const r of referenced) {
     if (r.canonical_path && !known.has(r.canonical_path)) {
       broken.push(r.canonical_path);
-      run('INSERT INTO broken_links (url, found_on_path, status_code, checked_at) VALUES (?, ?, ?, ?)', [r.canonical_path, 'product_seo', 404, nowIso()]);
+      await run('INSERT INTO broken_links (url, found_on_path, status_code, checked_at) VALUES (?, ?, ?, ?)', [r.canonical_path, 'product_seo', 404, nowIso()]);
     }
   }
   return { checked: referenced.length, broken };
@@ -97,12 +99,12 @@ export function checkInternalLinks(): { checked: number; broken: string[] } {
 
 export async function addRedirect(fromPath: string, toPath: string, userId: number): Promise<{ ok: boolean; error?: string }> {
   if (!fromPath.startsWith('/') || !toPath.startsWith('/')) return { ok: false, error: 'Both paths must start with /.' };
-  if (get('SELECT id FROM redirects WHERE from_path = ?', [fromPath])) return { ok: false, error: 'A redirect for this path already exists.' };
-  run('INSERT INTO redirects (from_path, to_path, status_code, created_at) VALUES (?, ?, 301, ?)', [fromPath, toPath, nowIso()]);
+  if (await get('SELECT id FROM redirects WHERE from_path = ?', [fromPath])) return { ok: false, error: 'A redirect for this path already exists.' };
+  await run('INSERT INTO redirects (from_path, to_path, status_code, created_at) VALUES (?, ?, 301, ?)', [fromPath, toPath, nowIso()]);
   await recordAudit('seo.redirect_added', 'redirect', fromPath, { toPath }, userId);
   return { ok: true };
 }
 
-export function recentSeoChecks() {
-  return all('SELECT * FROM seo_checks ORDER BY checked_at DESC LIMIT 100');
+export async function recentSeoChecks() {
+  return await all('SELECT * FROM seo_checks ORDER BY checked_at DESC LIMIT 100');
 }

@@ -47,7 +47,7 @@ export async function setReorderThresholdAction(fd: FormData): Promise<void> {
   const id = intField(fd, 'balanceId');
   const threshold = intField(fd, 'threshold');
   if (!id || threshold < 0) fail('/admin/inventory', 'Invalid threshold.');
-  run('UPDATE inventory_balances SET reorder_threshold = ?, updated_at = ? WHERE id = ?', [threshold, nowIso(), id]);
+  await run('UPDATE inventory_balances SET reorder_threshold = ?, updated_at = ? WHERE id = ?', [threshold, nowIso(), id]);
   revalidatePath('/admin/inventory');
   done('/admin/inventory', 'Low-stock threshold saved.');
 }
@@ -57,7 +57,7 @@ export async function createBranchAction(fd: FormData): Promise<void> {
   const code = field(fd, 'code');
   const name = field(fd, 'name');
   if (!code || !name) fail('/admin/operations', 'Branch code and name are required.');
-  run('INSERT INTO branches (code, name, address, phone, is_active) VALUES (?, ?, ?, ?, 1)', [code, name, field(fd, 'address'), field(fd, 'phone')]);
+  await run('INSERT INTO branches (code, name, address, phone, is_active) VALUES (?, ?, ?, ?, 1)', [code, name, field(fd, 'address'), field(fd, 'phone')]);
   revalidatePath('/admin/operations');
   done('/admin/operations', 'Branch created. No stock was assumed for it.');
 }
@@ -66,7 +66,7 @@ export async function createWarehouseAction(fd: FormData): Promise<void> {
   await guard(fd, 'settings.manage');
   const code = field(fd, 'code');
   if (!code || !intField(fd, 'branchId')) fail('/admin/operations', 'Warehouse code and branch are required.');
-  run('INSERT INTO warehouses (branch_id, code, name, is_active) VALUES (?, ?, ?, 1)', [intField(fd, 'branchId'), code, field(fd, 'name') || code]);
+  await run('INSERT INTO warehouses (branch_id, code, name, is_active) VALUES (?, ?, ?, 1)', [intField(fd, 'branchId'), code, field(fd, 'name') || code]);
   revalidatePath('/admin/operations');
   done('/admin/operations', 'Warehouse created with zero stock.');
 }
@@ -75,7 +75,7 @@ export async function createSupplierAction(fd: FormData): Promise<void> {
   await guard(fd, 'procurement.edit');
   const name = field(fd, 'name');
   if (!name) fail('/admin/operations', 'Supplier name is required.');
-  run('INSERT INTO suppliers (name, contact_person, phone, email, address, payment_terms, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+  await run('INSERT INTO suppliers (name, contact_person, phone, email, address, payment_terms, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
     [name, field(fd, 'contact'), field(fd, 'phone'), field(fd, 'email'), field(fd, 'address'), field(fd, 'terms'), 'active']);
   revalidatePath('/admin/operations');
   done('/admin/operations', 'Supplier profile created.');
@@ -89,9 +89,9 @@ export async function createPurchaseOrderAction(fd: FormData): Promise<void> {
   if (!supplierId || !productId || quantity <= 0) fail('/admin/operations', 'Supplier, product and quantity are required.');
   const branchId = intField(fd, 'branchId') || 1;
   const number = `PO-${Date.now().toString().slice(-8)}`;
-  const result = run('INSERT INTO purchase_orders (po_number, supplier_id, branch_id, status, notes, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+  const result = await run('INSERT INTO purchase_orders (po_number, supplier_id, branch_id, status, notes, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
     [number, supplierId, branchId, 'draft', field(fd, 'notes'), user.id, nowIso()]);
-  run('INSERT INTO purchase_order_items (po_id, product_id, quantity, unit_cost) VALUES (?, ?, ?, ?)',
+  await run('INSERT INTO purchase_order_items (po_id, product_id, quantity, unit_cost) VALUES (?, ?, ?, ?)',
     [result.lastInsertRowid, productId, quantity, Math.round(Number(field(fd, 'unitCostBdt') || 0) * 100)]);
   revalidatePath('/admin/operations');
   done('/admin/operations', `Purchase order ${number} created as draft.`);
@@ -102,7 +102,7 @@ export async function createSupplierInvoiceAction(fd: FormData): Promise<void> {
   const poId = intField(fd, 'poId');
   const number = field(fd, 'invoiceNumber');
   if (!poId || !number) fail('/admin/operations', 'Purchase order and invoice number are required.');
-  run('INSERT INTO supplier_invoices (po_id, invoice_number, amount, issued_at, status) VALUES (?, ?, ?, ?, ?)',
+  await run('INSERT INTO supplier_invoices (po_id, invoice_number, amount, issued_at, status) VALUES (?, ?, ?, ?, ?)',
     [poId, number, Math.round(Number(field(fd, 'amountBdt') || 0) * 100), nowIso().slice(0, 10), 'open']);
   revalidatePath('/admin/operations');
   done('/admin/operations', 'Supplier invoice recorded with outstanding balance.');

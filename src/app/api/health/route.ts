@@ -6,9 +6,9 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const snapshot = healthSnapshot();
+  const snapshot = await healthSnapshot();
   return NextResponse.json(
-    { ...snapshot, scheduler: schedulerStatus() },
+    { ...snapshot, scheduler: await schedulerStatus() },
     { status: snapshot.status === 'ok' ? 200 : 503, headers: { 'Cache-Control': 'no-store' } },
   );
 }

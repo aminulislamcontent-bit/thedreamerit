@@ -8,12 +8,12 @@ export const dynamic = 'force-dynamic';
 
 export default async function PosPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
-  const published = all<{ id: number; sku: string; model_name: string; price_amount: number | null; price_verified: number; brand_name: string }>(
+  const published = await all<{ id: number; sku: string; model_name: string; price_amount: number | null; price_verified: number; brand_name: string }>(
     `SELECT p.id, p.sku, p.model_name, p.price_amount, p.price_verified, b.name AS brand_name FROM products p JOIN brands b ON b.id = p.brand_id WHERE p.status = 'published' AND p.is_demo = 0`);
-  const branches = all<{ id: number; name: string }>('SELECT id, name FROM branches');
-  const employees = all<{ id: number; employee_code: string }>('SELECT id, employee_code FROM employees');
-  const recent = all<{ id: number; order_number: string; status: string; total_amount: number; channel: string }>("SELECT * FROM orders WHERE channel = 'pos' ORDER BY created_at DESC LIMIT 20");
-  const balances = all<{ product_id: number; available: number }>('SELECT product_id, SUM(on_hand - reserved) AS available FROM inventory_balances GROUP BY product_id');
+  const branches = await all<{ id: number; name: string }>('SELECT id, name FROM branches');
+  const employees = await all<{ id: number; employee_code: string }>('SELECT id, employee_code FROM employees');
+  const recent = await all<{ id: number; order_number: string; status: string; total_amount: number; channel: string }>("SELECT * FROM orders WHERE channel = 'pos' ORDER BY created_at DESC LIMIT 20");
+  const balances = await all<{ product_id: number; available: number }>('SELECT product_id, SUM(on_hand - reserved) AS available FROM inventory_balances GROUP BY product_id');
   return (
     <>
       <PageNotices searchParams={sp} />
